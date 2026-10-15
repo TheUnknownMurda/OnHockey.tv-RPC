@@ -1,4 +1,4 @@
-// NHL-RPC : reçoit de l'extension le match regardé sur onhockey.tv et l'affiche dans Discord.
+// OnHockey.tv RPC : reçoit de l'extension le match regardé sur onhockey.tv et l'affiche dans Discord.
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
@@ -7,7 +7,7 @@ const { Presence } = require('./discord');
 const nhl = require('./nhl');
 const { getMatchupImageUrl } = require('./matchup-image');
 
-const LOG_FILE = path.join(__dirname, '..', 'nhl-rpc.log');
+const LOG_FILE = path.join(__dirname, '..', 'onhockey-tv-rpc.log');
 const write = (level, msg) => {
   const line = `${new Date().toLocaleString('fr-CA')} [${level}] ${msg}`;
   (level === 'ERR' ? console.error : console.log)(line);
@@ -109,6 +109,8 @@ async function tick() {
     }
     activity = activity || genericActivity(s);
     if (config.showElapsed) activity.startTimestamp = s.startedAt;
+    // Nom affiché dans l'en-tête de la carte (« Regarde … ») ; la ligne de statut garde le nom des équipes.
+    if (config.activityName) activity.name = config.activityName;
     s.lastActivity = activity;
     presence.set(activity);
   } finally {
@@ -137,7 +139,7 @@ const server = http.createServer(async (req, res) => {
     res.end(JSON.stringify(obj));
   };
   // L'en-tête personnalisé empêche une page web quelconque de piloter la présence (pré-vérification CORS refusée).
-  if (req.method !== 'GET' && req.headers['x-nhl-rpc'] !== '1') return send(403, { error: 'forbidden' });
+  if (req.method !== 'GET' && req.headers['x-onhockey-rpc'] !== '1') return send(403, { error: 'forbidden' });
 
   try {
     if (req.method === 'GET' && req.url === '/status') {
@@ -177,13 +179,13 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') log.error(`Le port ${config.port} est déjà utilisé (NHL-RPC tourne déjà ?)`);
+  if (err.code === 'EADDRINUSE') log.error(`Le port ${config.port} est déjà utilisé (OnHockey.tv RPC tourne déjà ?)`);
   else log.error(err.message);
   process.exit(1);
 });
 
 server.listen(config.port, '127.0.0.1', () => {
-  log.info(`NHL-RPC prêt sur http://127.0.0.1:${config.port}`);
+  log.info(`OnHockey.tv RPC prêt sur http://127.0.0.1:${config.port}`);
 });
 
 setInterval(tick, config.pollSeconds * 1000);

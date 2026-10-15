@@ -1,5 +1,6 @@
 {
   "clientId": "1560088641848737852",
+  "activityName": "OnHockey.tv RPC",
   "port": 47823,
   "pollSeconds": 15,
   "generateMatchupImage": true,

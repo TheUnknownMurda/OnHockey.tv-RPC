@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "NHL-RPC (onhockey.tv → Discord)",
+  "name": "OnHockey.tv RPC",
   "version": "1.0.0",
-  "description": "Détecte le match regardé sur onhockey.tv et l'envoie à NHL-RPC pour la Rich Presence Discord.",
+  "description": "Détecte le match regardé sur onhockey.tv et l'envoie à OnHockey.tv RPC pour la Rich Presence Discord.",
   "icons": { "128": "icon128.png" },
   "permissions": ["storage", "tabs"],
   "host_permissions": ["http://127.0.0.1:47823/*"],

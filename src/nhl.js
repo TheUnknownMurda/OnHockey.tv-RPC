@@ -4,7 +4,7 @@ const { BY_ABBREV, matchScore } = require('./teams');
 const API = 'https://api-web.nhle.com/v1';
 
 async function getJson(url) {
-  const res = await fetch(url, { headers: { 'User-Agent': 'NHL-RPC' } });
+  const res = await fetch(url, { headers: { 'User-Agent': 'OnHockey.tv-RPC' } });
   if (!res.ok) throw new Error(`NHL API HTTP ${res.status} (${url})`);
   return res.json();
 }

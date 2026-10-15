@@ -1,12 +1,12 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title NHL-RPC setup
+title OnHockey.tv RPC setup
 set "EXT=%~dp0extension"
 
 echo.
 echo  ==========================================
-echo    NHL-RPC setup
+echo    OnHockey.tv RPC setup
 echo    Discord Rich Presence for onhockey.tv
 echo  ==========================================
 echo.
@@ -59,7 +59,7 @@ echo       Done.
 rem ---- 3. Start with Windows --------------------------------------------
 echo.
 echo [3/5] Start with Windows
-choice /m "      Start NHL-RPC automatically when Windows starts (recommended)"
+choice /m "      Start OnHockey.tv RPC automatically when Windows starts (recommended)"
 if errorlevel 2 (
   powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\autostart.ps1" -Remove
   echo       Skipped.
@@ -70,15 +70,15 @@ if errorlevel 2 (
 
 rem ---- 4. Launch --------------------------------------------------------
 echo.
-echo [4/5] Starting NHL-RPC in the background...
+echo [4/5] Starting OnHockey.tv RPC in the background...
 call "%~dp0stop.bat" quiet
 wscript "%~dp0scripts\start-hidden.vbs"
 timeout /t 4 /nobreak >nul
 curl -sf -o nul http://127.0.0.1:47823/status
 if errorlevel 1 (
-  echo       NHL-RPC did not start. Run start.bat to see the error.
+  echo       OnHockey.tv RPC did not start. Run start.bat to see the error.
 ) else (
-  echo       NHL-RPC is running.
+  echo       OnHockey.tv RPC is running.
 )
 
 rem ---- 5. Browser extension ---------------------------------------------
@@ -92,7 +92,7 @@ echo       In the extensions page that opens:
 echo         1. Turn on "Developer mode"
 echo         2. Click "Load unpacked"
 echo         3. Paste the path (Ctrl+V) in the folder box and confirm
-echo         4. Pin the NHL-RPC extension (puzzle icon) to check its status
+echo         4. Pin the OnHockey.tv RPC extension (puzzle icon) to check its status
 echo.
 choice /c 123 /n /m "      Which browser do you use?  [1] Chrome  [2] Edge  [3] Other (Brave, Opera...): "
 if errorlevel 3 goto :other_browser

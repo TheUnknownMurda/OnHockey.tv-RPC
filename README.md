@@ -1,4 +1,4 @@
-# NHL-RPC
+# OnHockey.tv RPC
 
 Discord Rich Presence for [onhockey.tv](https://onhockey.tv/): your Discord status shows the hockey game you're watching, with the live score, period and time remaining.
 
@@ -10,7 +10,7 @@ Discord Rich Presence for [onhockey.tv](https://onhockey.tv/): your Discord stat
 
 <img src="docs/matchup-example.png" width="200" alt="Matchup poster example">
 
-Your status reads « Watching Canadiens vs Capitals ». Hovering the image shows the full team names and shots on goal. A « Gamecenter NHL.com » button and the time you've been watching are shown too. The presence text is in French.
+Your status line reads « Watching Canadiens vs Capitals » and the activity card is titled « Watching OnHockey.tv RPC ». Hovering the image shows the full team names and shots on goal. A « Gamecenter NHL.com » button and the time you've been watching are shown too. The presence text is in French.
 
 Live scores are available for **NHL** games. For other leagues (KHL, AHL, Liiga…), the presence shows the game and the league, without score.
 
@@ -25,8 +25,8 @@ Live scores are available for **NHL** games. For other leagues (KHL, AHL, Liiga�
 
 **1. Download**
 
-Click **Code → Download ZIP** at the top of this page, then extract it to a folder you'll keep (for example `Documents\NHL-RPC`).
-If you use git: `git clone https://github.com/TheUnknownMurda/NHL-RPC.git`
+Click **Code → Download ZIP** at the top of this page, then extract it to a folder you'll keep (for example `Documents\OnHockey.tv-RPC`).
+If you use git: `git clone https://github.com/TheUnknownMurda/OnHockey.tv-RPC.git`
 
 > Don't move the folder after installing. If you do, run `install.bat` again and reload the extension.
 
@@ -36,8 +36,8 @@ Double-click `install.bat` and answer the questions. It:
 
 1. checks Node.js and installs it if needed
 2. installs the dependencies
-3. asks if NHL-RPC should start with Windows (recommended)
-4. starts NHL-RPC in the background
+3. asks if OnHockey.tv RPC should start with Windows (recommended)
+4. starts OnHockey.tv RPC in the background
 5. copies the extension folder path to your clipboard and opens your browser's extensions page
 
 **3. Load the browser extension**
@@ -59,10 +59,10 @@ The presence appears when you click a stream link on onhockey.tv. It disappears 
 
 | File | What it does |
 | --- | --- |
-| `install.bat` | Installs or repairs NHL-RPC (safe to run again) |
-| `start.bat` | Restarts NHL-RPC in a window where you can see the logs |
-| `stop.bat` | Stops NHL-RPC and clears your Discord status |
-| `uninstall.bat` | Stops NHL-RPC and removes it from Windows startup |
+| `install.bat` | Installs or repairs OnHockey.tv RPC (safe to run again) |
+| `start.bat` | Restarts OnHockey.tv RPC in a window where you can see the logs |
+| `stop.bat` | Stops OnHockey.tv RPC and clears your Discord status |
+| `uninstall.bat` | Stops OnHockey.tv RPC and removes it from Windows startup |
 
 ## Troubleshooting
 
@@ -70,15 +70,15 @@ Click the extension icon first: the popup tells you what's wrong.
 
 | Problem | Fix |
 | --- | --- |
-| Popup: *App: not found* | NHL-RPC isn't running. Run `start.bat`; the window shows any error. |
-| Popup: *Discord: not connected* | Open the Discord desktop app. NHL-RPC reconnects by itself within 15 s. |
+| Popup: *App: not found* | OnHockey.tv RPC isn't running. Run `start.bat`; the window shows any error. |
+| Popup: *Discord: not connected* | Open the Discord desktop app. OnHockey.tv RPC reconnects by itself within 15 s. |
 | Everything is connected but nobody sees the status | Discord → User Settings → **Activity Privacy** → turn on **Share your detected activities with others**. |
 | No score shown | Live scores exist only for NHL games. |
-| The image is the default one instead of the logos | The poster couldn't be uploaded. Check `nhl-rpc.log`; it's retried the next time you watch that game. |
+| The image is the default one instead of the logos | The poster couldn't be uploaded. Check `onhockey-tv-rpc.log`; it's retried the next time you watch that game. |
 | The extension doesn't react | After moving the folder or updating the files, click the reload ↻ button on the extension in the extensions page, then reload onhockey.tv. |
 | Chrome warns about developer-mode extensions | That's normal for extensions loaded from a folder. Keep it enabled. |
 
-Logs are written to `nhl-rpc.log` in the NHL-RPC folder.
+Logs are written to `onhockey-tv-rpc.log` in the OnHockey.tv RPC folder.
 
 ## Configuration
 
@@ -86,7 +86,8 @@ Edit `config.json`, then run `start.bat` (or `stop.bat` + `install.bat`) to appl
 
 | Key | Description |
 | --- | --- |
-| `clientId` | Discord application ID. Use your own to change the app name shown in « Watching … ». |
+| `clientId` | Discord application ID |
+| `activityName` | Title of the activity card (« Watching OnHockey.tv RPC »). Your status line always shows the teams. |
 | `pollSeconds` | Score refresh interval, in seconds |
 | `generateMatchupImage` | `false` always uses `fallbackImage` |
 | `fallbackImage` | Image used when no matchup poster is available |
@@ -99,7 +100,7 @@ Edit `config.json`, then run `start.bat` (or `stop.bat` + `install.bat`) to appl
 ## How it works
 
 ```
-onhockey.tv ──(extension)──▶ NHL-RPC (local app) ──▶ Discord (IPC)
+onhockey.tv ──(extension)──▶ OnHockey.tv RPC (local app) ──▶ Discord (IPC)
                                    │
                                    ├─ api-web.nhle.com: score, period, clock
                                    └─ matchup poster (sharp) → hosted on freeimage.host
@@ -112,5 +113,5 @@ onhockey.tv ──(extension)──▶ NHL-RPC (local app) ──▶ Discord (IP
 ## Notes
 
 - **Spoilers:** streams are often 30–60 s behind live TV. The score comes from the NHL API, so it can be ahead of your video.
-- **Privacy:** NHL-RPC only listens on `127.0.0.1` and only reacts to its own extension. It sends nothing except the matchup posters (two team logos) to freeimage.host.
+- **Privacy:** OnHockey.tv RPC only listens on `127.0.0.1` and only reacts to its own extension. It sends nothing except the matchup posters (two team logos) to freeimage.host.
 - **Why the posters are built from logos instead of AI-generated:** image generators distort logos. Building the poster from the official logos gives an exact result for all 32 teams.

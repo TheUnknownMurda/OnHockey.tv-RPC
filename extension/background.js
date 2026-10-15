@@ -1,15 +1,15 @@
-// Relaie les événements de l'onglet onhockey.tv vers l'application locale NHL-RPC.
+// Relaie les événements de l'onglet onhockey.tv vers l'application locale OnHockey.tv RPC.
 const API = 'http://127.0.0.1:47823';
 
 async function post(path, body) {
   try {
     await fetch(API + path, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-NHL-RPC': '1' },
+      headers: { 'Content-Type': 'application/json', 'X-OnHockey-RPC': '1' },
       body: JSON.stringify(body),
     });
   } catch {
-    // NHL-RPC n'est pas lancé : rien à faire.
+    // OnHockey.tv RPC n'est pas lancé : rien à faire.
   }
 }
 

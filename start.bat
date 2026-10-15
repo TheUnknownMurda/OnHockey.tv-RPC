@@ -1,7 +1,7 @@
 @echo off
-rem Starts NHL-RPC with a visible window to see the logs (stops the background instance first).
+rem Starts OnHockey.tv RPC with a visible window to see the logs (stops the background instance first).
 cd /d "%~dp0"
-title NHL-RPC
+title OnHockey.tv RPC
 call "%~dp0stop.bat" quiet
 node src\index.js
 pause

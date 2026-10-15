@@ -9,7 +9,7 @@ fetch('http://127.0.0.1:47823/status')
   .then((s) => {
     set('app', 'running', true);
     set('discord', s.discord ? 'connected' : 'not connected', s.discord);
-    if (!s.discord) $('hint').textContent = 'Open the Discord desktop app. NHL-RPC reconnects within 15 s.';
+    if (!s.discord) $('hint').textContent = 'Open the Discord desktop app. OnHockey.tv RPC reconnects within 15 s.';
     const a = s.watching?.activity;
     if (a) {
       $('game').className = 'game';
@@ -22,5 +22,5 @@ fetch('http://127.0.0.1:47823/status')
   .catch(() => {
     set('app', 'not found', false);
     set('discord', '—', false);
-    $('hint').textContent = 'NHL-RPC is not running. Run start.bat in the NHL-RPC folder.';
+    $('hint').textContent = 'OnHockey.tv RPC is not running. Run start.bat in the OnHockey.tv RPC folder.';
   });

@@ -1,4 +1,4 @@
-' Starts NHL-RPC in the background, without a window.
+' Starts OnHockey.tv RPC in the background, without a window.
 Set fso = CreateObject("Scripting.FileSystemObject")
 root = fso.GetParentFolderName(fso.GetParentFolderName(WScript.ScriptFullName))
 Set sh = CreateObject("WScript.Shell")
