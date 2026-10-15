@@ -65,7 +65,7 @@ class Presence {
     const op = this.wanted ? this.client.user.setActivity(this.wanted) : this.client.user.clearActivity();
     op.catch((err) => {
       this.applied = undefined;
-      this.log.warn(`[discord] échec de la mise à jour: ${err.message}`);
+      this.log.warn(`[discord] échec de la mise à jour: ${err?.message || JSON.stringify(err)}`);
     });
   }
 

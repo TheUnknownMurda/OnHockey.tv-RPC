@@ -6,13 +6,22 @@ Discord Rich Presence for [onhockey.tv](https://onhockey.tv/): your Discord stat
 
 - **Line 1:** the game, e.g. `Canadiens vs Capitals`
 - **Line 2:** live score + period + clock, e.g. `MTL 3 – 3 WSH · 3e période · 12:20`, `2e entracte · 4:51`, `Final (prol.)`
-- **Image:** a matchup poster built from both teams' official logos
+- **Image:** a matchup poster built from both teams' logos
 
-<img src="docs/matchup-example.png" width="200" alt="Matchup poster example">
+<img src="docs/matchup-leagues.png" width="660" alt="Matchup posters: SHL, KHL, NCAA, OHL, NHL">
 
 Your status line reads « Watching Canadiens vs Capitals » and the activity card is titled « Watching OnHockey.tv RPC ». Hovering the image shows the full team names and shots on goal. A « Gamecenter NHL.com » button and the time you've been watching are shown too. The presence text is in French.
 
-Live scores are available for **NHL** games. For other leagues (KHL, AHL, Liiga…), the presence shows the game and the league, without score.
+Score, period and poster work for most leagues listed on onhockey.tv:
+
+| Leagues | Source | Details |
+| --- | --- | --- |
+| NHL | Official NHL API | score, period, clock, shots on goal |
+| NCAA D1 men and women | ESPN | score, period, clock |
+| KHL | 365Scores | score, period |
+| AHL, OHL, WHL, QMJHL, SHL, Liiga, Mestis, DEL, Czech Extraliga, EHL, Alps HL, Ligue Magnus, Belarus, Kazakhstan… | LiveScore | score, period |
+
+Games no source covers (Canadian Junior A, USHL, Russian junior and minor leagues, women's European leagues…) show the teams and the league, without score.
 
 ## Requirements
 
@@ -73,7 +82,7 @@ Click the extension icon first: the popup tells you what's wrong.
 | Popup: *App: not found* | OnHockey.tv RPC isn't running. Run `start.bat`; the window shows any error. |
 | Popup: *Discord: not connected* | Open the Discord desktop app. OnHockey.tv RPC reconnects by itself within 15 s. |
 | Everything is connected but nobody sees the status | Discord → User Settings → **Activity Privacy** → turn on **Share your detected activities with others**. |
-| No score shown | Live scores exist only for NHL games. |
+| No score shown | No free source covers that league (see the table at the top). The log says « aucune source pour … ». |
 | The image is the default one instead of the logos | The poster couldn't be uploaded. Check `onhockey-tv-rpc.log`; it's retried the next time you watch that game. |
 | The extension doesn't react | After moving the folder or updating the files, click the reload ↻ button on the extension in the extensions page, then reload onhockey.tv. |
 | Chrome warns about developer-mode extensions | That's normal for extensions loaded from a folder. Keep it enabled. |
@@ -102,16 +111,16 @@ Edit `config.json`, then run `start.bat` (or `stop.bat` + `install.bat`) to appl
 ```
 onhockey.tv ──(extension)──▶ OnHockey.tv RPC (local app) ──▶ Discord (IPC)
                                    │
-                                   ├─ api-web.nhle.com: score, period, clock
+                                   ├─ NHL API / ESPN / 365Scores / LiveScore: score, period, clock
                                    └─ matchup poster (sharp) → hosted on freeimage.host
 ```
 
 1. The **extension** detects the stream link you click on onhockey.tv and reads the game (`Montréal - Washington`) and its league.
-2. The **local app** (Node.js) finds the game in the NHL's public API, refreshes the score every 15 s and updates Discord.
-3. Each matchup poster is generated once from the official NHL logos and uploaded, because Discord only displays images from public URLs. The URL is cached in `cache/matchups.json`.
+2. The **local app** (Node.js) picks a data source from the league, finds the game by team names (tolerant to spelling variants like « Brynäs » / « Brynaes »), refreshes the score every 15 s and updates Discord.
+3. Each matchup poster is generated once from the teams' logos and uploaded, because Discord only displays images from public URLs. The URL is cached in `cache/matchups.json`.
 
 ## Notes
 
 - **Spoilers:** streams are often 30–60 s behind live TV. The score comes from the NHL API, so it can be ahead of your video.
 - **Privacy:** OnHockey.tv RPC only listens on `127.0.0.1` and only reacts to its own extension. It sends nothing except the matchup posters (two team logos) to freeimage.host.
-- **Why the posters are built from logos instead of AI-generated:** image generators distort logos. Building the poster from the official logos gives an exact result for all 32 teams.
+- **Why the posters are built from logos instead of AI-generated:** image generators distort logos. Building the poster from the real logos gives an exact result for every team.

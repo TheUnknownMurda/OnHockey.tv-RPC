@@ -4,7 +4,8 @@ const path = require('path');
 const http = require('http');
 const config = require('../config.json');
 const { Presence } = require('./discord');
-const nhl = require('./nhl');
+const providers = require('./providers');
+const { abbreviate } = require('./format');
 const { getMatchupImageUrl } = require('./matchup-image');
 
 const LOG_FILE = path.join(__dirname, '..', 'onhockey-tv-rpc.log');
@@ -16,7 +17,6 @@ const write = (level, msg) => {
 const log = { info: (m) => write('INFO', m), warn: (m) => write('WARN', m), error: (m) => write('ERR', m) };
 
 const SESSION_TTL_MS = 45000; // sans signal de l'extension pendant 45 s → on considère que l'onglet est fermé
-const NHL_LOGO = 'https://a.espncdn.com/i/teamlogos/leagues/500/nhl.png';
 const WATCHING = 3;
 const SHOW_DETAILS = 2;
 
@@ -33,43 +33,58 @@ function activeSession() {
   return best;
 }
 
-const isNhl = (league) => /\bNHL\b|\bLNH\b/i.test(league || '');
 const truncate = (s, n = 128) => (s && s.length > n ? s.slice(0, n - 1) + '…' : s);
 
-async function nhlActivity(s) {
-  if (!s.game) {
+// Match trouvé dans une source de données (LNH, LiveScore, 365Scores, ESPN) : score, période, logos.
+async function gameActivity(s) {
+  if (!s.match) {
     if (Date.now() - (s.lastLookup || 0) < 30000) return null;
     s.lastLookup = Date.now();
-    const found = await nhl.findGame(s.teams);
-    if (!found) { log.warn(`[nhl] aucun match trouvé pour « ${s.teams.join(' - ')} »`); return null; }
-    s.game = { id: found.id, gameDate: found.gameDate };
-    log.info(`[nhl] match trouvé : ${found.awayTeam.abbrev} @ ${found.homeTeam.abbrev} (${found.id})`);
+    s.match = await providers.find(s, log);
+    if (!s.match) {
+      log.warn(`[match] aucune source pour « ${s.teams.join(' - ')} » (${s.league || '?'})`);
+      return null;
+    }
+    log.info(`[${s.match.provider}] match trouvé : ${s.match.label}`);
   }
-  const game = await nhl.fetchGame(s.game.id, s.game.gameDate);
+  const game = await providers.load(s.match);
   if (!game) return null;
-  const d = nhl.describe(game);
+  const [a, b] = game.teams;
+  // Noms : ceux de la source, sauf quand elle les translittère (LiveScore) → ceux d'onhockey.tv
+  const name = (t, i) => t.name || s.teams[i];
+  const abbr = (t, i) => t.abbrev || abbreviate(name(t, i));
 
   if (config.generateMatchupImage && s.image === undefined) {
     s.image = null; // en cours
-    getMatchupImageUrl(d.away.abbrev, d.home.abbrev, { log, apiKey: config.freeimageApiKey }).then((url) => {
-      s.image = url || config.fallbackImage;
-      tick();
-    });
+    if (a.logo && b.logo) {
+      // Clé sans préfixe pour la LNH : garde les affiches déjà hébergées (« MTL-WSH »).
+      const key = game.provider === 'nhl' ? `${a.id}-${b.id}` : `${game.provider}-${a.id}-${b.id}`;
+      const sides = [a, b].map((t) => ({ logo: t.logo, color: t.color }));
+      getMatchupImageUrl(key, sides, { log, apiKey: config.freeimageApiKey }).then((url) => {
+        s.image = url || config.fallbackImage;
+        tick();
+      });
+    } else {
+      s.image = config.fallbackImage;
+    }
   }
 
+  const score = a.score == null || b.score == null
+    ? `${abbr(a, 0)} vs ${abbr(b, 1)}`
+    : `${abbr(a, 0)} ${a.score} – ${b.score} ${abbr(b, 1)}`;
   const activity = {
     type: WATCHING,
     statusDisplayType: SHOW_DETAILS,
-    details: truncate(d.details),
-    state: truncate(d.status),
+    details: truncate(`${name(a, 0)} vs ${name(b, 1)}`),
+    state: truncate(`${score} · ${game.statusText}`),
     largeImageKey: s.image || config.fallbackImage,
-    largeImageText: truncate(d.shots ? `${d.fullTitle} · ${d.shots}` : d.fullTitle),
+    largeImageText: truncate(game.hover || `${s.league || game.league} · ${a.fullName || name(a, 0)} vs ${b.fullName || name(b, 1)}`),
     instance: false,
   };
-  // Le petit badge LNH recouvre le logo de l'équipe locale sur l'affiche : désactivé par défaut.
-  if (config.showLeagueBadge) Object.assign(activity, { smallImageKey: NHL_LOGO, smallImageText: 'LNH' });
-  if (d.url) activity.detailsUrl = d.url;
-  if (config.showGamecenterButton && d.url) activity.buttons = [{ label: 'Gamecenter NHL.com', url: d.url }];
+  // Le petit badge de ligue recouvre le logo de la 2e équipe sur l'affiche : désactivé par défaut.
+  if (config.showLeagueBadge && game.badge) Object.assign(activity, { smallImageKey: game.badge, smallImageText: game.league });
+  if (game.url) activity.detailsUrl = game.url;
+  if (config.showGamecenterButton && game.url) activity.buttons = [{ label: game.urlLabel || 'Voir le match', url: game.url }];
   return activity;
 }
 
@@ -99,11 +114,11 @@ async function tick() {
       return;
     }
     let activity = null;
-    if (isNhl(s.league) && s.teams.length === 2) {
+    if (s.teams.length === 2) {
       try {
-        activity = await nhlActivity(s);
+        activity = await gameActivity(s);
       } catch (err) {
-        log.warn(`[nhl] ${err.message}`);
+        log.warn(`[${s.match?.provider || 'match'}] ${err.message}`);
         activity = s.lastActivity || null;
       }
     }
@@ -153,7 +168,7 @@ const server = http.createServer(async (req, res) => {
       const key = `${body.league}|${teams.join('|')}`;
       let s = sessions.get(id);
       if (!s || s.key !== key) {
-        s = { key, league: String(body.league || ''), teams, title: String(body.title || ''), startedAt: Date.now() };
+        s = { key, league: String(body.league || ''), region: String(body.region || ''), teams, title: String(body.title || ''), startedAt: Date.now() };
         sessions.set(id, s);
         log.info(`[onhockey] ${s.league || '?'} : ${teams.join(' - ') || s.title}`);
       }

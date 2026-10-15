@@ -20,9 +20,11 @@
     }
     text = text.replace(/\s+/g, ' ').trim();
     const teams = text.split(/\s+[-–]\s+/);
-    const league = row.closest('tbody')?.querySelector('tr:first-child b')?.textContent.trim() || '';
+    const tbody = row.closest('tbody');
+    const league = tbody?.querySelector('tr:first-child b')?.textContent.trim() || '';
     return {
       league,
+      region: tbody?.classList[0] || '', // filtre de région d'onhockey.tv (FI, SE, RU, NA…)
       teams: teams.length === 2 ? teams : [],
       title: text,
       channel: a.title || a.textContent.trim(),
