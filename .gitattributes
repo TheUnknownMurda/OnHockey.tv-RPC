@@ -1,0 +1,4 @@
+# Windows scripts must keep CRLF line endings (clone and ZIP download)
+*.bat -text
+*.ps1 -text
+*.vbs -text

@@ -1,0 +1,11 @@
+{
+  "clientId": "1560088641848737852",
+  "port": 47823,
+  "pollSeconds": 15,
+  "generateMatchupImage": true,
+  "freeimageApiKey": "",
+  "fallbackImage": "https://images.guns.lol/2d34137430fbdf92ffab3a07ade119c29de30536/DfuEf5E5OhKIfOxB4gl9D.png",
+  "showElapsed": true,
+  "showLeagueBadge": false,
+  "showGamecenterButton": true
+}

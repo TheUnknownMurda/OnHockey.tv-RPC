@@ -1,0 +1,17 @@
+{
+  "name": "nhl-rpc",
+  "version": "1.0.0",
+  "description": "Discord Rich Presence pour les matchs regardés sur onhockey.tv (score LNH en direct)",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@xhayper/discord-rpc": "^1.5.1",
+    "sharp": "^0.35.5"
+  },
+  "private": true
+}
