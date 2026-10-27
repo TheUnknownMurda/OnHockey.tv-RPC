@@ -7,6 +7,7 @@ const { Presence } = require('./discord');
 const providers = require('./providers');
 const { abbreviate } = require('./format');
 const { getMatchupImageUrl } = require('./matchup-image');
+const { getLeagueLogoKey } = require('./league-logos');
 
 const LOG_FILE = path.join(__dirname, '..', 'onhockey-tv-rpc.log');
 const write = (level, msg) => {
@@ -17,7 +18,7 @@ const write = (level, msg) => {
 const log = { info: (m) => write('INFO', m), warn: (m) => write('WARN', m), error: (m) => write('ERR', m) };
 
 const SESSION_TTL_MS = 45000; // sans signal de l'extension pendant 45 s → on considère que l'onglet est fermé
-const WATCHING = 3;
+const LISTENING = 2;
 const SHOW_DETAILS = 2;
 
 const presence = new Presence(config.clientId, log);
@@ -73,16 +74,35 @@ async function gameActivity(s) {
     ? `${abbr(a, 0)} vs ${abbr(b, 1)}`
     : `${abbr(a, 0)} ${a.score} – ${b.score} ${abbr(b, 1)}`;
   const activity = {
-    type: WATCHING,
+    type: LISTENING,
     statusDisplayType: SHOW_DETAILS,
     details: truncate(`${name(a, 0)} vs ${name(b, 1)}`),
     state: truncate(`${score} · ${game.statusText}`),
-    largeImageKey: s.image || config.fallbackImage,
+    largeImageKey: s.image || 'hockey',
     largeImageText: truncate(game.hover || `${s.league || game.league} · ${a.fullName || name(a, 0)} vs ${b.fullName || name(b, 1)}`),
     instance: false,
   };
   // Le petit badge de ligue recouvre le logo de la 2e équipe sur l'affiche : désactivé par défaut.
-  if (config.showLeagueBadge && game.badge) Object.assign(activity, { smallImageKey: game.badge, smallImageText: game.league });
+  if (config.showLeagueBadge) {
+    const leagueLogoKey = getLeagueLogoKey(s.league || game.league);
+    if (leagueLogoKey) {
+      // Si aucune image d'équipe n'est disponible, afficher le logo de la ligue en large_image et pas de small_image
+      if (!s.image) {
+        activity.largeImageKey = leagueLogoKey;
+        activity.largeImageText = truncate(s.league || game.league);
+      } else {
+        Object.assign(activity, { smallImageKey: leagueLogoKey, smallImageText: s.league || game.league });
+      }
+    } else if (game.badge) {
+      // Si aucune image d'équipe n'est disponible, afficher le badge de la ligue en large_image et pas de small_image
+      if (!s.image) {
+        activity.largeImageKey = game.badge;
+        activity.largeImageText = truncate(game.league);
+      } else {
+        Object.assign(activity, { smallImageKey: game.badge, smallImageText: game.league });
+      }
+    }
+  }
   if (game.url) activity.detailsUrl = game.url;
   if (config.showGamecenterButton && game.url) activity.buttons = [{ label: game.urlLabel || 'Voir le match', url: game.url }];
   return activity;
@@ -90,15 +110,24 @@ async function gameActivity(s) {
 
 function genericActivity(s) {
   const [a, b] = s.teams;
-  return {
-    type: WATCHING,
+  const activity = {
+    type: LISTENING,
     statusDisplayType: SHOW_DETAILS,
     details: truncate(b ? `${a} vs ${b}` : s.title || 'Match de hockey'),
     state: truncate(s.league ? `${s.league} · En direct` : 'En direct'),
-    largeImageKey: config.fallbackImage,
+    largeImageKey: 'hockey',
     largeImageText: truncate(s.league || 'Hockey'),
     instance: false,
   };
+  if (config.showLeagueBadge) {
+    const leagueLogoKey = getLeagueLogoKey(s.league);
+    if (leagueLogoKey) {
+      // Afficher le logo de la ligue en large_image et pas de small_image
+      activity.largeImageKey = leagueLogoKey;
+      activity.largeImageText = truncate(s.league);
+    }
+  }
+  return activity;
 }
 
 let ticking = false;
