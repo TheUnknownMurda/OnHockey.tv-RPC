@@ -13,20 +13,21 @@ Discord Rich Presence for [onhockey.tv](https://onhockey.tv/): your Discord stat
 
 Your status line shows the teams (« Canadiens vs Capitals ») and the activity card is titled with `activityName` from `config.json`. Hovering the image shows the full team names and shots on goal. A « Gamecenter NHL.com » button and the time you've been watching are shown too. The presence text is in French.
 
-onhockey.tv lists **134 leagues** over a season. Score, period and poster work for 35 of them:
+onhockey.tv lists **134 leagues** over a season. Score, period and poster work for 53 of them:
 
 | Leagues | Source | Details |
 | --- | --- | --- |
 | NHL | Official NHL API | score, period, clock, shots, scorer and assists |
+| AHL, ECHL, SPHL, PWHL, OHL, WHL, QMJHL, Memorial Cup, USHL and the Canadian Junior A leagues (OJHL, GOHL, CCHL, EOJHL, MHL, MJHL, SJHL, AJHL, BCHL, BCHC, PJHL, VIJHL, NWJHL) | HockeyTech (the leagues' official stats) | score, period, clock, scorer and assists |
 | NCAA D1 men and women | ESPN | score, period, clock |
 | KHL, Champions League, Asia League | 365Scores | score, period |
-| AHL, OHL, WHL, QMJHL, SHL, HockeyAllsvenskan, HockeyEttan, Liiga, Mestis, Suomi-sarja, Metal Ligaen, EHL, Czech Extraliga, Maxa Liga, Tipsport Liga, National League, Swiss League, DEL, DEL 2, Ligue Magnus, ICEHL, AlpsHL, IHL, Erste Liga, Polish Hokej Liga, UHL, EIHL, Belarus Extraleague, Pro Hokei Ligasy | LiveScore | score, period, scorer and assists |
+| SHL, HockeyAllsvenskan, HockeyEttan, Liiga, Mestis, Suomi-sarja, Metal Ligaen, EHL, Czech Extraliga, Maxa Liga, Tipsport Liga, National League, Swiss League, DEL, DEL 2, Ligue Magnus, ICEHL, AlpsHL, IHL, Erste Liga, Polish Hokej Liga, UHL, EIHL, Belarus Extraleague, Pro Hokei Ligasy | LiveScore | score, period, scorer and assists |
 
-The other leagues (Canadian Junior A, USHL, ECHL, Russian junior and minor leagues, women's leagues…) show the teams with the league logo. **[See every league →](docs/LEAGUES.md)**
+The other leagues (FPHL, VHL and Russian junior leagues, European women's and U20 leagues…) show the teams with the league logo. **[See every league →](docs/LEAGUES.md)**
 
 ### Goal alerts
 
-When the score changes, the status switches for about a minute to the goal: `🚨 BUT ! Pontus Holmberg (4)` and `Filet désert · Aides : A. Cirelli (4), B. Hagel (8) · WPG 4 – 6 TBL`, with a flashing red goal light as the small image. Scorer and assists come from the NHL API and LiveScore. For KHL and NCAA games, the alert shows the team that scored.
+When the score changes, the status switches for about a minute to the goal: `🚨 BUT ! Pontus Holmberg (4)` and `Filet désert · Aides : A. Cirelli (4), B. Hagel (8) · WPG 4 – 6 TBL`, with a flashing red goal light as the small image. Scorer and assists come from the NHL API, HockeyTech and LiveScore. For KHL and NCAA games, the alert shows the team that scored.
 
 ### League logos
 
@@ -133,7 +134,7 @@ To preview the goal alert while a game is shown in your status, run `curl -X POS
 ```
 onhockey.tv ──(extension)──▶ OnHockey.tv RPC (local app) ──▶ Discord (IPC)
                                    │
-                                   ├─ NHL API / ESPN / 365Scores / LiveScore: score, period, clock
+                                   ├─ NHL API / HockeyTech / ESPN / 365Scores / LiveScore: score, period, clock
                                    ├─ league logos: Discord assets / assets/ / Wikipedia / generated badge
                                    └─ posters and logos (sharp) → hosted on freeimage.host
 ```

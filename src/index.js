@@ -113,7 +113,7 @@ function applyGoalAlert(activity, s, game, scoreLine, teamName) {
   }
 }
 
-// Match trouvé dans une source de données (LNH, LiveScore, 365Scores, ESPN) : score, période, logos.
+// Match trouvé dans une source de données (LNH, HockeyTech, LiveScore, 365Scores, ESPN) : score, période, logos.
 async function gameActivity(s) {
   if (!s.match) {
     if (Date.now() - (s.lastLookup || 0) < 30000) return null;

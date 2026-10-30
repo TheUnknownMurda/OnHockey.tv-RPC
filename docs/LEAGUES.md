@@ -11,29 +11,29 @@ Every league that appeared on the onhockey.tv schedule between May 2025 and Octo
 | League (as shown on onhockey.tv) | Live score | Logo | Days seen |
 | --- | --- | --- | --- |
 | **NHL**<br><sub>NHL Preseason · NHL Rookie Camp</sub> | NHL API — score, clock, shots, scorer & assists | Discord asset | 82 |
-| **AHL** | LiveScore — score, period, scorer & assists | Discord asset | 49 |
-| **ECHL**<br><sub>ECHL Preseason</sub> | — | Wikipedia | 43 |
+| **AHL** | HockeyTech — score, clock, scorer & assists | Discord asset | 49 |
+| **ECHL**<br><sub>ECHL Preseason</sub> | HockeyTech — score, clock, scorer & assists | Wikipedia | 43 |
 | **NCAA D1 Men**<br><sub>NCAA D1 Women</sub> | ESPN — score, clock | Wikipedia | 28 |
-| **OHL** | LiveScore — score, period, scorer & assists | Discord asset | 25 |
-| **USHL** | — | Wikipedia | 24 |
+| **OHL** | HockeyTech — score, clock, scorer & assists | Discord asset | 25 |
+| **USHL** | HockeyTech — score, clock, scorer & assists | Wikipedia | 24 |
 | **FPHL** | — | Discord asset | 18 |
-| **QMJHL** | LiveScore — score, period, scorer & assists | Wikipedia | 16 |
-| **SPHL** | — | Wikipedia | 14 |
-| **WHL**<br><sub>WHL Preseason</sub> | LiveScore — score, period, scorer & assists | Discord asset | 13 |
-| **PWHL** | — | Wikipedia | 12 |
-| **BCHC** | — | Generated badge | 6 |
-| **PJHL** | — | Wikipedia | 6 |
-| **MJHL** | — | Wikipedia | 4 |
-| **GOHL** | — | Discord asset | 3 |
-| **EOJHL** | — | Discord asset | 3 |
-| **SJHL** | — | Wikipedia | 3 |
-| **AJHL** | — | Wikipedia | 3 |
-| **BCHL** | — | Wikipedia | 3 |
-| **OJHL** | — | Wikipedia | 2 |
-| **CCHL** | — | Wikipedia | 2 |
-| **MHL** | — | Wikipedia | 1 |
-| **VIJHL** | — | Wikipedia | 1 |
-| **NWJHL** | — | Wikipedia | 1 |
+| **QMJHL** | HockeyTech — score, clock, scorer & assists | Wikipedia | 16 |
+| **SPHL** | HockeyTech — score, clock, scorer & assists | Wikipedia | 14 |
+| **WHL**<br><sub>WHL Preseason</sub> | HockeyTech — score, clock, scorer & assists | Discord asset | 13 |
+| **PWHL** | HockeyTech — score, clock, scorer & assists | Wikipedia | 12 |
+| **BCHC** | HockeyTech — score, clock, scorer & assists | Generated badge | 6 |
+| **PJHL** | HockeyTech — score, clock, scorer & assists | Wikipedia | 6 |
+| **MJHL** | HockeyTech — score, clock, scorer & assists | Wikipedia | 4 |
+| **GOHL** | HockeyTech — score, clock, scorer & assists | Discord asset | 3 |
+| **EOJHL** | HockeyTech — score, clock, scorer & assists | Discord asset | 3 |
+| **SJHL** | HockeyTech — score, clock, scorer & assists | Wikipedia | 3 |
+| **AJHL** | HockeyTech — score, clock, scorer & assists | Wikipedia | 3 |
+| **BCHL** | HockeyTech — score, clock, scorer & assists | Wikipedia | 3 |
+| **OJHL** | HockeyTech — score, clock, scorer & assists | Wikipedia | 2 |
+| **CCHL** | HockeyTech — score, clock, scorer & assists | Wikipedia | 2 |
+| **MHL** | HockeyTech — score, clock, scorer & assists | Wikipedia | 1 |
+| **VIJHL** | HockeyTech — score, clock, scorer & assists | Wikipedia | 1 |
+| **NWJHL** | HockeyTech — score, clock, scorer & assists | Wikipedia | 1 |
 
 ## Russia, Belarus, Kazakhstan
 
@@ -174,7 +174,7 @@ Every league that appeared on the onhockey.tv schedule between May 2025 and Octo
 | --- | --- | --- | --- |
 | **World Championship**<br><sub>Exhibition Games · Women's Asia Cup · WJC Pre-Tournament · WC Division IIB · U18 WC Division IIA · Women's WC DIA</sub> | — | Wikipedia | 37 |
 | **EWHL**<br><sub>EWHL Euro Cup</sub> | — | Discord asset | 6 |
-| **Memorial Cup** | — | Generated badge | 5 |
+| **Memorial Cup** | HockeyTech — score, clock, scorer & assists | Generated badge | 5 |
 | **Champions League** | 365Scores — score, period | Wikipedia | 5 |
 | **Men's Olympic**<br><sub>Women's Olympic</sub> | — | Wikipedia | 4 |
 | **Women's EHT**<br><sub>Lidl Hockey Games</sub> | — | Wikipedia | 3 |
@@ -197,4 +197,4 @@ Every league that appeared on the onhockey.tv schedule between May 2025 and Octo
 
 ---
 
-35 of 134 leagues have a live score. Generated from `src/leagues.js`.
+53 of 134 leagues have a live score. Generated from `src/leagues.js`.

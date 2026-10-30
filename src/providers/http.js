@@ -7,7 +7,8 @@ async function getJson(url, { ttl = 8000 } = {}) {
   if (hit && Date.now() - hit.at < ttl) return hit.data;
   const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json' }, signal: AbortSignal.timeout(10000) });
   if (!res.ok) throw new Error(`HTTP ${res.status} (${new URL(url).host})`);
-  const data = await res.json();
+  // Certains fils (HockeyTech) répondent en JSONP : « ({…}) »
+  const data = JSON.parse((await res.text()).replace(/^\s*\(([\s\S]*)\)\s*;?\s*$/, '$1'));
   cache.set(url, { at: Date.now(), data });
   if (cache.size > 50) cache.delete(cache.keys().next().value);
   return data;

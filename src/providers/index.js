@@ -3,14 +3,18 @@ const nhl = require('./nhl');
 const livescore = require('./livescore');
 const scores365 = require('./scores365');
 const espn = require('./espn');
+const hockeytech = require('./hockeytech');
+const { findLeague } = require('../leagues');
 const { pickGame } = require('../match');
 
-const BY_NAME = { nhl, livescore, 365: scores365, espn };
+const BY_NAME = { nhl, livescore, 365: scores365, espn, hockeytech };
 
-function sourcesFor(league) {
-  const l = String(league || '');
+function sourcesFor(session) {
+  const l = String(session.league || '');
   if (/\bNHL\b|\bLNH\b/i.test(l)) return [nhl];
   if (/NCAA/i.test(l)) return [espn];
+  // Ligues dont le site officiel utilise HockeyTech (chrono, marqueur et aides), LiveScore en secours
+  if (hockeytech.covers(findLeague(session)?.id)) return [hockeytech, livescore];
   // Ligues russes : absentes de LiveScore
   if (/\b(KHL|VHL|MHL)\b/i.test(l)) return [scores365, livescore];
   return [livescore, scores365];
@@ -19,7 +23,7 @@ function sourcesFor(league) {
 // session : { league, region, teams: [équipe A, équipe B] } tels que lus sur onhockey.tv.
 // Retourne { provider, id, ref, flip } ou null.
 async function find(session, log) {
-  for (const source of sourcesFor(session.league)) {
+  for (const source of sourcesFor(session)) {
     let games;
     try {
       games = await source.list(session);

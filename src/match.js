@@ -112,10 +112,13 @@ function pickGame(session, games) {
   const [a, b] = session.teams;
   const junior = has(JUNIOR, session.league, a, b);
   const women = has(WOMEN, session.league);
+  const leagueId = findLeague(session)?.id;
   let best = null;
   for (const g of games) {
-    if (has(JUNIOR, g.league, g.home.fullName, g.away.fullName) !== junior) continue;
-    if (has(WOMEN, g.league) !== women) continue;
+    // Source limitée à la ligue regardée (HockeyTech) : « Ligue de hockey junior… », « Jr. Canadiens » ne disent rien de plus
+    const sameLeague = !!g.leagueId && g.leagueId === leagueId;
+    if (!sameLeague && has(JUNIOR, g.league, g.home.fullName, g.away.fullName) !== junior) continue;
+    if (!sameLeague && has(WOMEN, g.league) !== women) continue;
     const direct = [teamSim(a, g.away), teamSim(b, g.home)];
     const swapped = [teamSim(a, g.home), teamSim(b, g.away)];
     const flip = swapped[0] + swapped[1] > direct[0] + direct[1];
