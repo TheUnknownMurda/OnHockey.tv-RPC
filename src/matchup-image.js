@@ -4,22 +4,14 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 const crypto = require('crypto');
+const { hosted, CACHE_DIR } = require('./hosting');
 
 const SIZE = 512;
 const LOGO = 280;
-const CACHE_DIR = path.join(__dirname, '..', 'cache');
 const LOGO_DIR = path.join(CACHE_DIR, 'logos');
 const IMG_DIR = path.join(CACHE_DIR, 'matchups');
-const INDEX_FILE = path.join(CACHE_DIR, 'matchups.json');
 
-for (const d of [CACHE_DIR, LOGO_DIR, IMG_DIR]) fs.mkdirSync(d, { recursive: true });
-
-function readIndex() {
-  try { return JSON.parse(fs.readFileSync(INDEX_FILE, 'utf8')); } catch { return {}; }
-}
-function writeIndex(index) {
-  fs.writeFileSync(INDEX_FILE, JSON.stringify(index, null, 2));
-}
+for (const d of [LOGO_DIR, IMG_DIR]) fs.mkdirSync(d, { recursive: true });
 
 // Télécharge un logo (SVG ou PNG) une seule fois, puis le contient dans un carré LOGO×LOGO.
 async function getLogo(url) {
@@ -104,52 +96,12 @@ async function renderMatchup(key, sides) {
   return file;
 }
 
-// Clé publique documentée de l'API freeimage.host (images servies par iili.io, que Discord affiche bien ;
-// catbox.moe, lui, apparaît en « ? » dans Discord).
-const FREEIMAGE_KEY = '6d207e02198a847aa98d0a2a901485a5';
-
-// Hébergement anonyme et permanent (une seule fois par affiche, puis mis en cache).
-async function upload(file, apiKey = FREEIMAGE_KEY) {
-  const form = new FormData();
-  form.append('key', apiKey);
-  form.append('action', 'upload');
-  form.append('format', 'json');
-  form.append('source', new Blob([fs.readFileSync(file)], { type: 'image/png' }), path.basename(file));
-  const res = await fetch('https://freeimage.host/api/1/upload', { method: 'POST', body: form });
-  const json = await res.json().catch(() => null);
-  const url = json?.image?.url;
-  if (!res.ok || !/^https:\/\//.test(url || '')) {
-    throw new Error(`Échec de l'envoi sur freeimage.host: ${json?.error?.message || `HTTP ${res.status}`}`);
-  }
-  return url;
-}
-
-const pending = new Map();
-
-// Retourne l'URL publique de l'affiche, ou null si impossible (l'appelant utilise alors l'image de secours).
-async function getMatchupImageUrl(key, sides, { log = console, apiKey } = {}) {
-  const index = readIndex();
-  if (index[key]) return index[key];
-  if (pending.has(key)) return pending.get(key);
-
-  const job = (async () => {
-    try {
-      const file = await renderMatchup(key, sides);
-      const url = await upload(file, apiKey || undefined);
-      const idx = readIndex();
-      idx[key] = url;
-      writeIndex(idx);
-      log.info?.(`[image] ${key} → ${url}`);
-      return url;
-    } catch (err) {
-      log.warn?.(`[image] ${key}: ${err.message}`);
-      return null;
-    } finally {
-      pending.delete(key);
-    }
-  })();
-  pending.set(key, job);
-  return job;
+// Retourne l'URL publique de l'affiche, ou null si impossible (l'appelant utilise alors une image de secours).
+function getMatchupImageUrl(key, sides, opts = {}) {
+  return hosted('matchups', key, async () => {
+    const file = await renderMatchup(key, sides);
+    return { buffer: fs.readFileSync(file), filename: path.basename(file) };
+  }, opts);
 }
 
 module.exports = { renderMatchup, getMatchupImageUrl };

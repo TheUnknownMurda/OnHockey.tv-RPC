@@ -25,6 +25,8 @@
     return {
       league,
       region: tbody?.classList[0] || '', // filtre de région d'onhockey.tv (FI, SE, RU, NA…)
+      // Icône de la ligue (« pic/ico/mleagues/khl.ico ») : distingue SHL suédoise / slovaque, OHL Ontario / Lettonie…
+      icon: tbody?.querySelector('tr:first-child td[background]')?.getAttribute('background') || '',
       teams: teams.length === 2 ? teams : [],
       title: text,
       channel: a.title || a.textContent.trim(),

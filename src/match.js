@@ -1,3 +1,5 @@
+const { findLeague } = require('./leagues');
+
 // Rapproche un match d'onhockey.tv (« Brynäs IF - Djurgårdens IF », ligue « SHL ») d'un match d'une source de données,
 // malgré les variantes d'écriture (« Brynaes », « Djurgaarden », « Kr. Sovetov », « Boston C »…).
 
@@ -89,9 +91,12 @@ const REGIONS = {
 
 function leagueBonus(session, game) {
   let bonus = 0;
-  const wanted = LEAGUE_ALIASES[normalize(session.league)] || session.league;
-  if (wanted && game.league && nameSim(wanted, game.league) >= 0.6) bonus += 0.35;
-  const countries = REGIONS[session.region] || [];
+  // Noms connus de la ligue : celui d'onhockey.tv, son alias, et ceux des sources (registre des ligues)
+  const known = findLeague(session);
+  const wanted = [LEAGUE_ALIASES[normalize(session.league)] || session.league, ...(known?.aka || [])].filter(Boolean);
+  if (game.league && wanted.some((w) => nameSim(w, game.league) >= 0.6)) bonus += 0.35;
+  // Régions : « NAp » / « NAj » (pro / junior) → « NA »
+  const countries = REGIONS[session.region] || REGIONS[String(session.region || '').slice(0, 2).toUpperCase()] || [];
   const country = normalize(game.country);
   if (country && countries.some((c) => country.includes(c))) bonus += 0.15;
   return bonus;

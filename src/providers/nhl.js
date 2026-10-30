@@ -37,6 +37,20 @@ function status(g) {
   return { state: 'live', text: `${label} · ${clock(c.timeRemaining)}` };
 }
 
+// Buts du match : marqueur, aides (avec leurs totaux de la saison), avantage/désavantage numérique, filet désert.
+function goals(g) {
+  return (g.goals || []).map((x) => ({
+    side: x.teamAbbrev === g.homeTeam.abbrev ? 'home' : 'away',
+    scorer: [x.firstName?.default, x.lastName?.default].filter(Boolean).join(' ') || x.name?.default,
+    total: x.goalsToDate ?? null,
+    assists: (x.assists || []).map((a) => ({ name: a.name?.default, total: a.assistsToDate ?? null })),
+    strength: x.strength === 'pp' || x.strength === 'sh' ? x.strength : null,
+    emptyNet: x.goalModifier === 'empty-net',
+    period: x.periodDescriptor?.number || x.period,
+    time: x.timeInPeriod,
+  }));
+}
+
 function toGame(g) {
   const away = team(g.awayTeam);
   const home = team(g.homeTeam);
@@ -56,6 +70,7 @@ function toGame(g) {
     url: g.gameCenterLink ? `https://www.nhl.com/fr${g.gameCenterLink}` : null,
     urlLabel: 'Gamecenter NHL.com',
     badge: 'https://a.espncdn.com/i/teamlogos/leagues/500/nhl.png',
+    goals: goals(g),
   };
 }
 

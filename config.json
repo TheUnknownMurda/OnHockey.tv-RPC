@@ -8,5 +8,8 @@
   "fallbackImage": "https://images.guns.lol/2d34137430fbdf92ffab3a07ade119c29de30536/DfuEf5E5OhKIfOxB4gl9D.png",
   "showElapsed": true,
   "showLeagueBadge": true,
-  "showGamecenterButton": true
+  "showGamecenterButton": true,
+  "goalAlerts": true,
+  "goalAlertSeconds": 60,
+  "goalLightImage": ""
 }

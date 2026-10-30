@@ -44,4 +44,13 @@ async function load(match) {
   return { ...g, teams: match.flip ? [g.home, g.away] : [g.away, g.home] };
 }
 
-module.exports = { find, load };
+// Dernier but (marqueur, aides…) avec l'équipe exprimée comme dans teams : side = 0 (A) ou 1 (B).
+// Null quand la source ne donne pas le détail des buts (365Scores, ESPN).
+async function lastGoal(match, game) {
+  const goal = game?.goals ? game.goals.at(-1) : await BY_NAME[match.provider].lastGoal?.(match.id, match.ref);
+  if (!goal) return null;
+  const isHome = goal.side === 'home';
+  return { ...goal, side: isHome === !!match.flip ? 0 : 1 };
+}
+
+module.exports = { find, load, lastGoal };

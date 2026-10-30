@@ -6,22 +6,38 @@ Discord Rich Presence for [onhockey.tv](https://onhockey.tv/): your Discord stat
 
 - **Line 1:** the game, e.g. `Canadiens vs Capitals`
 - **Line 2:** live score + period + clock, e.g. `MTL 3 – 3 WSH · 3e période · 12:20`, `2e entracte · 4:51`, `Final (prol.)`
-- **Image:** a matchup poster built from both teams' logos
+- **Image:** a matchup poster built from both teams' logos, with the league logo as the small image
+- **Goals:** for about a minute after a goal, the status shows who scored and the assists, with a flashing goal light
 
 <img src="docs/matchup-leagues.png" width="660" alt="Matchup posters: SHL, KHL, NCAA, OHL, NHL">
 
-Your status line reads « Watching Canadiens vs Capitals » and the activity card is titled « Watching OnHockey.tv RPC ». Hovering the image shows the full team names and shots on goal. A « Gamecenter NHL.com » button and the time you've been watching are shown too. The presence text is in French.
+Your status line shows the teams (« Canadiens vs Capitals ») and the activity card is titled with `activityName` from `config.json`. Hovering the image shows the full team names and shots on goal. A « Gamecenter NHL.com » button and the time you've been watching are shown too. The presence text is in French.
 
-Score, period and poster work for most leagues listed on onhockey.tv:
+onhockey.tv lists **134 leagues** over a season. Score, period and poster work for 35 of them:
 
 | Leagues | Source | Details |
 | --- | --- | --- |
-| NHL | Official NHL API | score, period, clock, shots on goal |
+| NHL | Official NHL API | score, period, clock, shots, scorer and assists |
 | NCAA D1 men and women | ESPN | score, period, clock |
-| KHL | 365Scores | score, period |
-| AHL, OHL, WHL, QMJHL, SHL, Liiga, Mestis, DEL, Czech Extraliga, EHL, Alps HL, Ligue Magnus, Belarus, Kazakhstan… | LiveScore | score, period |
+| KHL, Champions League, Asia League | 365Scores | score, period |
+| AHL, OHL, WHL, QMJHL, SHL, HockeyAllsvenskan, HockeyEttan, Liiga, Mestis, Suomi-sarja, Metal Ligaen, EHL, Czech Extraliga, Maxa Liga, Tipsport Liga, National League, Swiss League, DEL, DEL 2, Ligue Magnus, ICEHL, AlpsHL, IHL, Erste Liga, Polish Hokej Liga, UHL, EIHL, Belarus Extraleague, Pro Hokei Ligasy | LiveScore | score, period, scorer and assists |
 
-Games no source covers (Canadian Junior A, USHL, Russian junior and minor leagues, women's European leagues…) show the teams and the league, without score.
+The other leagues (Canadian Junior A, USHL, ECHL, Russian junior and minor leagues, women's leagues…) show the teams with the league logo. **[See every league →](docs/LEAGUES.md)**
+
+### Goal alerts
+
+When the score changes, the status switches for about a minute to the goal: `🚨 BUT ! Pontus Holmberg (4)` and `Filet désert · Aides : A. Cirelli (4), B. Hagel (8) · WPG 4 – 6 TBL`, with a flashing red goal light as the small image. Scorer and assists come from the NHL API and LiveScore. For KHL and NCAA games, the alert shows the team that scored.
+
+### League logos
+
+The small image is the league's logo; when no team logos exist for a game, the league logo becomes the large image (with no small image). Each league's logo comes from, in order:
+
+1. an **Art Asset of the Discord application** named after the league's id in [`src/leagues.js`](src/leagues.js) (e.g. `khl`, `metal_ligaen`)
+2. a file **`assets/<id>.png`** in this folder
+3. the league's logo on **Wikipedia** ([`src/league-logo-urls.json`](src/league-logo-urls.json), refreshed with `node scripts/resolve-league-logos.js`)
+4. a **generated badge** with the league's initials
+
+Leagues are recognized by the icon onhockey.tv shows next to their name, so look-alike names (« SHL » in Sweden and Slovakia, « OHL » in Ontario and Latvia, « MHL » in Russia and the Maritimes) get the right logo.
 
 ## Requirements
 
@@ -82,9 +98,10 @@ Click the extension icon first: the popup tells you what's wrong.
 | Popup: *App: not found* | OnHockey.tv RPC isn't running. Run `start.bat`; the window shows any error. |
 | Popup: *Discord: not connected* | Open the Discord desktop app. OnHockey.tv RPC reconnects by itself within 15 s. |
 | Everything is connected but nobody sees the status | Discord → User Settings → **Activity Privacy** → turn on **Share your detected activities with others**. |
-| No score shown | No free source covers that league (see the table at the top). The log says « aucune source pour … ». |
+| No score shown | No free source covers that league (see [docs/LEAGUES.md](docs/LEAGUES.md)). The log says « aucune source pour … ». |
+| A league shows the wrong logo or a badge | Add `assets/<id>.png` (id from [`src/leagues.js`](src/leagues.js)) or upload an Art Asset with that name to your Discord application, then restart with `start.bat`. |
 | The image is the default one instead of the logos | The poster couldn't be uploaded. Check `onhockey-tv-rpc.log`; it's retried the next time you watch that game. |
-| The extension doesn't react | After moving the folder or updating the files, click the reload ↻ button on the extension in the extensions page, then reload onhockey.tv. |
+| The extension doesn't react, or the wrong league logo shows | After moving the folder or updating the files, click the reload ↻ button on the extension in the extensions page, then reload onhockey.tv. |
 | Chrome warns about developer-mode extensions | That's normal for extensions loaded from a folder. Keep it enabled. |
 
 Logs are written to `onhockey-tv-rpc.log` in the OnHockey.tv RPC folder.
@@ -92,6 +109,8 @@ Logs are written to `onhockey-tv-rpc.log` in the OnHockey.tv RPC folder.
 ## Configuration
 
 Edit `config.json`, then run `start.bat` (or `stop.bat` + `install.bat`) to apply.
+
+To preview the goal alert while a game is shown in your status, run `curl -X POST -H "X-OnHockey-RPC: 1" http://127.0.0.1:47823/test-goal` (it replays the game's last goal).
 
 | Key | Description |
 | --- | --- |
@@ -102,7 +121,10 @@ Edit `config.json`, then run `start.bat` (or `stop.bat` + `install.bat`) to appl
 | `fallbackImage` | Image used when no matchup poster is available |
 | `freeimageApiKey` | Your own [freeimage.host](https://freeimage.host/page/api) API key (optional) |
 | `showElapsed` | Shows how long you've been watching |
-| `showLeagueBadge` | Small NHL badge on the image (off by default: it covers the home team's logo) |
+| `showLeagueBadge` | League logo as the small image over the matchup poster |
+| `goalAlerts` | Goal alerts (scorer, assists, goal light) |
+| `goalAlertSeconds` | How long the goal alert stays, in seconds |
+| `goalLightImage` | URL of your own goal light image or GIF (empty: the built-in one, `assets/goal-light.gif`) |
 | `showGamecenterButton` | « Gamecenter NHL.com » button |
 | `port` | Local port used by the extension. If you change it, also change it in `extension/background.js`, `extension/manifest.json`, `extension/popup.js` and `stop.bat`. |
 
@@ -112,15 +134,16 @@ Edit `config.json`, then run `start.bat` (or `stop.bat` + `install.bat`) to appl
 onhockey.tv ──(extension)──▶ OnHockey.tv RPC (local app) ──▶ Discord (IPC)
                                    │
                                    ├─ NHL API / ESPN / 365Scores / LiveScore: score, period, clock
-                                   └─ matchup poster (sharp) → hosted on freeimage.host
+                                   ├─ league logos: Discord assets / assets/ / Wikipedia / generated badge
+                                   └─ posters and logos (sharp) → hosted on freeimage.host
 ```
 
-1. The **extension** detects the stream link you click on onhockey.tv and reads the game (`Montréal - Washington`) and its league.
-2. The **local app** (Node.js) picks a data source from the league, finds the game by team names (tolerant to spelling variants like « Brynäs » / « Brynaes »), refreshes the score every 15 s and updates Discord.
+1. The **extension** detects the stream link you click on onhockey.tv and reads the game (`Montréal - Washington`), its league and the league's icon.
+2. The **local app** (Node.js) picks a data source from the league, finds the game by team names (tolerant to spelling variants like « Brynäs » / « Brynaes »), refreshes the score every 15 s, spots goals and updates Discord.
 3. Each matchup poster is generated once from the teams' logos and uploaded, because Discord only displays images from public URLs. The URL is cached in `cache/matchups.json`.
 
 ## Notes
 
 - **Spoilers:** streams are often 30–60 s behind live TV. The score comes from the NHL API, so it can be ahead of your video.
-- **Privacy:** OnHockey.tv RPC only listens on `127.0.0.1` and only reacts to its own extension. It sends nothing except the matchup posters (two team logos) to freeimage.host.
+- **Privacy:** OnHockey.tv RPC only listens on `127.0.0.1` and only reacts to its own extension. It sends nothing except the matchup posters and league logos to freeimage.host.
 - **Why the posters are built from logos instead of AI-generated:** image generators distort logos. Building the poster from the real logos gives an exact result for every team.
