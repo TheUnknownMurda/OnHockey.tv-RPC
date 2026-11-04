@@ -11,8 +11,10 @@ if ($Remove) {
 }
 
 $s = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk)
-$s.TargetPath = Join-Path $env:WINDIR 'System32\wscript.exe'
-$s.Arguments = '"' + (Join-Path $PSScriptRoot 'start-hidden.vbs') + '"'
+$s.TargetPath = (Get-Command node -ErrorAction Stop).Source
+$s.Arguments = '"' + (Join-Path $PSScriptRoot 'start-hidden.js') + '"'
+# Minimized: node only opens a console for the instant it takes to start the app in the background
+$s.WindowStyle = 7
 $s.WorkingDirectory = Split-Path -Parent $PSScriptRoot
 $s.Description = 'OnHockey.tv RPC (Discord Rich Presence for onhockey.tv)'
 $s.Save()

@@ -103,6 +103,7 @@ Click the extension icon first: the popup tells you what's wrong.
 | A league shows the wrong logo or a badge | Add `assets/<id>.png` (id from [`src/leagues.js`](src/leagues.js)) or upload an Art Asset with that name to your Discord application, then restart with `start.bat`. |
 | The image is the default one instead of the logos | The poster couldn't be uploaded. Check `onhockey-tv-rpc.log`; it's retried the next time you watch that game. |
 | The extension doesn't react, or the wrong league logo shows | After moving the folder or updating the files, click the reload ↻ button on the extension in the extensions page, then reload onhockey.tv. |
+| Error about `start-hidden.vbs` when Windows starts | You updated from an older version. Run `install.bat` again to recreate the startup shortcut. |
 | Chrome warns about developer-mode extensions | That's normal for extensions loaded from a folder. Keep it enabled. |
 
 Logs are written to `onhockey-tv-rpc.log` in the OnHockey.tv RPC folder.

@@ -72,7 +72,7 @@ rem ---- 4. Launch --------------------------------------------------------
 echo.
 echo [4/5] Starting OnHockey.tv RPC in the background...
 call "%~dp0stop.bat" quiet
-wscript "%~dp0scripts\start-hidden.vbs"
+node "%~dp0scripts\start-hidden.js"
 timeout /t 4 /nobreak >nul
 curl -sf -o nul http://127.0.0.1:47823/status
 if errorlevel 1 (
