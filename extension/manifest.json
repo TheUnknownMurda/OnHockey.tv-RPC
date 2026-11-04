@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "OnHockey.tv RPC",
   "version": "1.2.0",
-  "description": "Détecte le match regardé sur onhockey.tv et l'envoie à OnHockey.tv RPC pour la Rich Presence Discord.",
+  "description": "Detects the game you're watching on onhockey.tv and sends it to OnHockey.tv RPC for your Discord Rich Presence.",
   "icons": { "128": "icon128.png" },
   "permissions": ["storage", "tabs"],
   "host_permissions": ["http://127.0.0.1:47823/*"],

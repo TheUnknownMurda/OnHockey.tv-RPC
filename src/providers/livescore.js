@@ -27,19 +27,19 @@ function status(e, tzHours) {
   if (!eps && e.Epr === 1) {
     // Entracte : aucun libellé, seulement les scores des périodes déjà jouées (Tr1Pe1, Tr1Pe2…)
     const played = [1, 2, 3].filter((i) => e[`Tr1Pe${i}`] !== undefined).length;
-    return { state: 'live', text: played ? intermission(played) : 'Entracte' };
+    return { state: 'live', text: played ? intermission(played) : 'Intermission' };
   }
   if ((m = /^P(\d)$/.exec(eps))) return { state: 'live', text: periodLabel(+m[1]) };
-  if (/^OT$/i.test(eps)) return { state: 'live', text: 'Prolongation' };
-  if (/^(SO|PS|PEN|Pen\.?)$/i.test(eps)) return { state: 'live', text: 'Tirs de barrage' };
-  if (/break|pause|^int$/i.test(eps)) return { state: 'live', text: 'Entracte' };
+  if (/^OT$/i.test(eps)) return { state: 'live', text: 'Overtime' };
+  if (/^(SO|PS|PEN|Pen\.?)$/i.test(eps)) return { state: 'live', text: 'Shootout' };
+  if (/break|pause|^int$/i.test(eps)) return { state: 'live', text: 'Intermission' };
   if (eps === 'FT') return { state: 'final', text: finalLabel() };
   if (/^(AOT|AET)$/i.test(eps)) return { state: 'final', text: finalLabel('OT') };
   if (/^(AP|AS|AFP)$/i.test(eps)) return { state: 'final', text: finalLabel('SO') };
-  if (/postp/i.test(eps)) return { state: 'other', text: 'Reporté' };
-  if (/canc/i.test(eps)) return { state: 'other', text: 'Annulé' };
-  if (/delay/i.test(eps)) return { state: 'other', text: 'Retardé' };
-  if (/susp|aband|int\./i.test(eps)) return { state: 'other', text: 'Interrompu' };
+  if (/postp/i.test(eps)) return { state: 'other', text: 'Postponed' };
+  if (/canc/i.test(eps)) return { state: 'other', text: 'Canceled' };
+  if (/delay/i.test(eps)) return { state: 'other', text: 'Delayed' };
+  if (/susp|aband|int\./i.test(eps)) return { state: 'other', text: 'Interrupted' };
   return { state: 'live', text: eps };
 }
 

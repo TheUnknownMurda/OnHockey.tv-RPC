@@ -1,5 +1,5 @@
 // LNH : API officielle (api-web.nhle.com), avec le temps restant à la période et les tirs au but.
-const { BY_ABBREV } = require('../teams');
+const { BY_ABBREV, fullName } = require('../teams');
 const { periodLabel, intermission, clock, startsAt, finalLabel } = require('../format');
 const { getJson } = require('./http');
 
@@ -11,7 +11,7 @@ function team(t) {
   return {
     id: t.abbrev,
     name: nickname,
-    fullName: info?.fr || nickname,
+    fullName: info ? fullName(info) : nickname,
     abbrev: t.abbrev,
     names: info ? [info.city, info.name, `${info.city} ${info.name}`, info.fr, info.abbrev, ...(info.aliases || [])] : [nickname, t.abbrev],
     score: t.score ?? null,
@@ -31,9 +31,9 @@ function status(g) {
   if (c.inIntermission) {
     return { state: 'live', text: c.secondsRemaining > 0 ? `${intermission(n)} · ${clock(c.timeRemaining)}` : intermission(n) };
   }
-  if (pd.periodType === 'SO') return { state: 'live', text: 'Tirs de barrage' };
+  if (pd.periodType === 'SO') return { state: 'live', text: 'Shootout' };
   const label = periodLabel(n, pd.maxRegulationPeriods || 3);
-  if (c.secondsRemaining === 0 && !c.running) return { state: 'live', text: `Fin de la ${label.toLowerCase()}` };
+  if (c.secondsRemaining === 0 && !c.running) return { state: 'live', text: `End of ${label.toLowerCase()}` };
   return { state: 'live', text: `${label} · ${clock(c.timeRemaining)}` };
 }
 
@@ -55,7 +55,7 @@ function toGame(g) {
   const away = team(g.awayTeam);
   const home = team(g.homeTeam);
   const { state, text } = status(g);
-  const shots = away.shots != null && home.shots != null ? ` · Tirs : ${away.abbrev} ${away.shots} – ${home.shots} ${home.abbrev}` : '';
+  const shots = away.shots != null && home.shots != null ? ` · Shots: ${away.abbrev} ${away.shots} – ${home.shots} ${home.abbrev}` : '';
   return {
     provider: 'nhl',
     id: g.id,
@@ -67,7 +67,7 @@ function toGame(g) {
     state,
     statusText: text,
     hover: `${away.fullName} @ ${home.fullName}${shots}`,
-    url: g.gameCenterLink ? `https://www.nhl.com/fr${g.gameCenterLink}` : null,
+    url: g.gameCenterLink ? `https://www.nhl.com${g.gameCenterLink}` : null,
     urlLabel: 'Gamecenter NHL.com',
     badge: 'https://a.espncdn.com/i/teamlogos/leagues/500/nhl.png',
     goals: goals(g),

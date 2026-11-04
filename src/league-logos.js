@@ -14,7 +14,7 @@ const URLS = require('./league-logo-urls.json');
 const ASSETS_DIR = path.join(__dirname, '..', 'assets');
 const SIZE = 512;
 // Bump quand le rendu change : force un nouvel envoi des images déjà hébergées
-const VERSION = 1;
+const VERSION = 2;
 const UA = 'OnHockeyTV-RPC/1.2 (https://github.com/TheUnknownMurda/OnHockey.tv-RPC)';
 
 // Assets de l'application Discord (liste publique), relue toutes les 6 h

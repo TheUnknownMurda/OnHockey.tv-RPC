@@ -17,8 +17,8 @@ const TEAMS = [
   { abbrev: 'MTL', city: 'Montréal', name: 'Canadiens', fr: 'Canadiens de Montréal', color: '#AF1E2D', alt: '#192168', aliases: ['Habs'] },
   { abbrev: 'NJD', city: 'New Jersey', name: 'Devils', fr: 'Devils du New Jersey', color: '#CE1126', alt: '#000000', aliases: ['NJ Devils'] },
   { abbrev: 'NSH', city: 'Nashville', name: 'Predators', fr: 'Predators de Nashville', color: '#FFB81C', alt: '#041E42' },
-  { abbrev: 'NYI', city: 'NY Islanders', name: 'Islanders', fr: 'Islanders de New York', color: '#00539B', alt: '#F47D30', aliases: ['New York Islanders', 'N.Y. Islanders', 'NYI'] },
-  { abbrev: 'NYR', city: 'NY Rangers', name: 'Rangers', fr: 'Rangers de New York', color: '#0038A8', alt: '#CE1126', aliases: ['New York Rangers', 'N.Y. Rangers', 'NYR'] },
+  { abbrev: 'NYI', city: 'NY Islanders', name: 'Islanders', en: 'New York Islanders', fr: 'Islanders de New York', color: '#00539B', alt: '#F47D30', aliases: ['New York Islanders', 'N.Y. Islanders', 'NYI'] },
+  { abbrev: 'NYR', city: 'NY Rangers', name: 'Rangers', en: 'New York Rangers', fr: 'Rangers de New York', color: '#0038A8', alt: '#CE1126', aliases: ['New York Rangers', 'N.Y. Rangers', 'NYR'] },
   { abbrev: 'OTT', city: 'Ottawa', name: 'Senators', fr: "Sénateurs d'Ottawa", color: '#C52032', alt: '#C2912C', aliases: ['Sénateurs'] },
   { abbrev: 'PHI', city: 'Philadelphia', name: 'Flyers', fr: 'Flyers de Philadelphie', color: '#F74902', alt: '#000000', aliases: ['Philadelphie'] },
   { abbrev: 'PIT', city: 'Pittsburgh', name: 'Penguins', fr: 'Penguins de Pittsburgh', color: '#FCB514', alt: '#000000' },
@@ -62,6 +62,9 @@ function matchScore(label, team) {
   return best;
 }
 
+// Nom complet affiché : « Montréal Canadiens »
+const fullName = (team) => team.en || `${team.city} ${team.name}`;
+
 function findTeam(label) {
   let best = null;
   let bestScore = 0;
@@ -72,4 +75,4 @@ function findTeam(label) {
   return bestScore >= 0.7 ? best : null;
 }
 
-module.exports = { TEAMS, BY_ABBREV, normalize, matchScore, findTeam };
+module.exports = { TEAMS, BY_ABBREV, normalize, matchScore, findTeam, fullName };

@@ -16,16 +16,16 @@ function status(g) {
   }
   if (g.statusGroup === 3) {
     if ((m = /(\d)(st|nd|rd|th) Period/i.exec(text))) return { state: 'live', text: periodLabel(+m[1]) };
-    if (/overtime/i.test(text)) return { state: 'live', text: 'Prolongation' };
-    if (/penalt|shoot/i.test(text)) return { state: 'live', text: 'Tirs de barrage' };
+    if (/overtime/i.test(text)) return { state: 'live', text: 'Overtime' };
+    if (/penalt|shoot/i.test(text)) return { state: 'live', text: 'Shootout' };
     if (/break|intermission|end of/i.test(text)) {
       const ended = (g.stages || []).filter((s) => s.isEnded && /period/i.test(s.name)).length;
-      return { state: 'live', text: ended ? intermission(ended) : 'Entracte' };
+      return { state: 'live', text: ended ? intermission(ended) : 'Intermission' };
     }
     return { state: 'live', text };
   }
-  if (/postpon/i.test(text)) return { state: 'other', text: 'Reporté' };
-  if (/cancel/i.test(text)) return { state: 'other', text: 'Annulé' };
+  if (/postpon/i.test(text)) return { state: 'other', text: 'Postponed' };
+  if (/cancel/i.test(text)) return { state: 'other', text: 'Canceled' };
   return { state: 'other', text };
 }
 

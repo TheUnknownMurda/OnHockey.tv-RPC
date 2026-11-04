@@ -5,13 +5,13 @@ Discord Rich Presence for [onhockey.tv](https://onhockey.tv/): your Discord stat
 ![Discord presence](docs/discord-presence.jpg)
 
 - **Line 1:** the game, e.g. `Canadiens vs Capitals`
-- **Line 2:** live score + period + clock, e.g. `MTL 3 – 3 WSH · 3e période · 12:20`, `2e entracte · 4:51`, `Final (prol.)`
+- **Line 2:** live score + period + clock, e.g. `MTL 3 – 3 WSH · 3rd period · 12:20`, `2nd intermission · 4:51`, `Final (OT)`
 - **Image:** a matchup poster built from both teams' logos, with the league logo as the small image
 - **Goals:** for about a minute after a goal, the status shows who scored and the assists, with a flashing goal light
 
 <img src="docs/matchup-leagues.png" width="660" alt="Matchup posters: SHL, KHL, NCAA, OHL, NHL">
 
-Your status line shows the teams (« Canadiens vs Capitals ») and the activity card is titled with `activityName` from `config.json`. Hovering the image shows the full team names and shots on goal. A « Gamecenter NHL.com » button and the time you've been watching are shown too. The presence text is in French.
+Your status line shows the teams (« Canadiens vs Capitals ») and the activity card is titled with `activityName` from `config.json`. Hovering the image shows the full team names and shots on goal. A « Gamecenter NHL.com » button and the time you've been watching are shown too.
 
 onhockey.tv lists **134 leagues** over a season. Score, period and poster work for 53 of them:
 
@@ -27,7 +27,7 @@ The other leagues (FPHL, VHL and Russian junior leagues, European women's and U2
 
 ### Goal alerts
 
-When the score changes, the status switches for about a minute to the goal: `🚨 BUT ! Pontus Holmberg (4)` and `Filet désert · Aides : A. Cirelli (4), B. Hagel (8) · WPG 4 – 6 TBL`, with a flashing red goal light as the small image. Scorer and assists come from the NHL API, HockeyTech and LiveScore. For KHL and NCAA games, the alert shows the team that scored.
+When the score changes, the status switches for about a minute to the goal: `🚨 GOAL! Pontus Holmberg (4)` and `Empty net · Assists: A. Cirelli (4), B. Hagel (8) · WPG 4 – 6 TBL`, with a flashing red goal light as the small image. Scorer and assists come from the NHL API, HockeyTech and LiveScore. For KHL and NCAA games, the alert shows the team that scored.
 
 ### League logos
 

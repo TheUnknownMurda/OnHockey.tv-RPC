@@ -45,16 +45,16 @@ function status(g) {
   const text = String(g.GameStatusStringLong || g.GameStatusString || '');
   const s = Number(g.GameStatus);
   const n = Number(g.Period) || 1;
-  if (/postpon/i.test(text)) return { state: 'other', text: 'Reporté' };
-  if (/cancel/i.test(text)) return { state: 'other', text: 'Annulé' };
+  if (/postpon/i.test(text)) return { state: 'other', text: 'Postponed' };
+  if (/cancel/i.test(text)) return { state: 'other', text: 'Canceled' };
   if (s === 3 || s === 4) return { state: 'final', text: finalLabel(/\bSO\b|shoot/i.test(text) ? 'SO' : /OT/i.test(text) || n > 3 ? 'OT' : null) };
   if (s !== 2) return { state: 'pre', text: startsAt(g.GameDateISO8601) };
-  if (/\bSO\b|shoot/i.test(`${g.PeriodNameShort} ${g.PeriodNameLong}`)) return { state: 'live', text: 'Tirs de barrage' };
+  if (/\bSO\b|shoot/i.test(`${g.PeriodNameShort} ${g.PeriodNameLong}`)) return { state: 'live', text: 'Shootout' };
   if (g.Intermission === '1' || /\bint/i.test(text)) return { state: 'live', text: intermission(n) };
   const label = periodLabel(n);
   // « 12:34 » ou « 00:12:34 »
   const left = String(g.GameClock || '').split(':').slice(-2).join(':');
-  if (!left || /^0?0:00$/.test(left)) return { state: 'live', text: `Fin de la ${label.toLowerCase()}` };
+  if (!left || /^0?0:00$/.test(left)) return { state: 'live', text: `End of ${label.toLowerCase()}` };
   return { state: 'live', text: `${label} · ${clock(left)}` };
 }
 

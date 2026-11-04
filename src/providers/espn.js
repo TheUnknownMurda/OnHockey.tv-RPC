@@ -11,7 +11,7 @@ function status(e) {
   if (st.type?.state === 'pre') return { state: 'pre', text: startsAt(e.date) };
   if (st.type?.state === 'post') return { state: 'final', text: finalLabel(/SO|shootout/i.test(detail) ? 'SO' : /OT/i.test(detail) ? 'OT' : null) };
   if (/intermission|end of/i.test(detail)) return { state: 'live', text: intermission(Math.min(n, 3)) };
-  if (/shootout/i.test(detail)) return { state: 'live', text: 'Tirs de barrage' };
+  if (/shootout/i.test(detail)) return { state: 'live', text: 'Shootout' };
   return { state: 'live', text: `${periodLabel(n)} · ${clock(st.displayClock)}` };
 }
 
@@ -45,7 +45,7 @@ function toGame(e, path, date) {
     state: st.state,
     statusText: st.text,
     url: link || null,
-    urlLabel: 'Match sur ESPN',
+    urlLabel: 'Game on ESPN',
   };
 }
 

@@ -1,24 +1,25 @@
-// Libellés français communes à toutes les sources (période, entracte, début du match…).
-const ordinal = (n) => (n === 1 ? '1re' : `${n}e`);
+// Libellés communs à toutes les sources (période, entracte, début du match…).
+const ordinal = (n) => `${n}${['th', 'st', 'nd', 'rd'][(n % 100 >= 11 && n % 100 <= 13) || n % 10 > 3 ? 0 : n % 10]}`;
 
 function periodLabel(n, regulation = 3) {
-  if (n <= regulation) return `${ordinal(n)} période`;
+  if (n <= regulation) return `${ordinal(n)} period`;
   const ot = n - regulation;
-  return ot <= 1 ? 'Prolongation' : `${ot}e prolongation`;
+  return ot <= 1 ? 'Overtime' : `${ordinal(ot)} overtime`;
 }
 
-const intermission = (n) => (n === 1 ? '1er entracte' : `${n}e entracte`);
+const intermission = (n) => `${ordinal(n)} intermission`;
 
 // « 05:45 » → « 5:45 »
 const clock = (t) => String(t || '').replace(/^0(\d)/, '$1');
 
+// L'heure anglaise contient une espace insécable (« 7:30 PM »)
 const startsAt = (date) =>
-  `Début à ${new Date(date).toLocaleTimeString('fr-CA', { hour: '2-digit', minute: '2-digit' })}`;
+  `Starts at ${new Date(date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).replace(/\s/g, ' ')}`;
 
 // Libellé de fin de match selon la façon dont il s'est terminé.
 function finalLabel(how) {
-  if (how === 'OT') return 'Final (prol.)';
-  if (how === 'SO') return 'Final (t.b.)';
+  if (how === 'OT') return 'Final (OT)';
+  if (how === 'SO') return 'Final (SO)';
   return 'Final';
 }
 

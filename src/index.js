@@ -5,7 +5,7 @@ const http = require('http');
 const config = require('../config.json');
 const { Presence } = require('./discord');
 const providers = require('./providers');
-const { abbreviate, periodLabel } = require('./format');
+const { abbreviate, periodLabel, finalLabel } = require('./format');
 const { getMatchupImageUrl } = require('./matchup-image');
 const { leagueLogo, refreshDiscordAssets, hasDiscordAsset } = require('./league-logos');
 const { hosted, cached } = require('./hosting');
@@ -80,7 +80,7 @@ function detectGoal(s, game) {
   if (scores.some((n, i) => n < prev[i])) { s.goalAlert = null; return; }
   const side = scores[0] > prev[0] ? 0 : scores[1] > prev[1] ? 1 : -1;
   // Le point accordé au vainqueur d'une fusillade n'est pas un but « en direct »
-  if (side < 0 || !wasLive || /t\.b\./.test(game.statusText)) return;
+  if (side < 0 || !wasLive || game.statusText === finalLabel('SO')) return;
   const alert = { side, until: Date.now() + (config.goalAlertSeconds || 60) * 1000, goal: null };
   s.goalAlert = alert;
   log.info(`[but] ${game.teams[side].abbrev || s.teams[side]} · ${scores.join('-')}`);
@@ -97,19 +97,19 @@ function applyGoalAlert(activity, s, game, scoreLine, teamName) {
   const { side, goal } = s.goalAlert;
   const team = game.teams[side];
   activity.details = truncate(goal?.scorer
-    ? `🚨 BUT ! ${goal.scorer}${goal.total ? ` (${goal.total})` : ''}`
-    : `🚨 BUT ! ${teamName(team, side)}`);
+    ? `🚨 GOAL! ${goal.scorer}${goal.total ? ` (${goal.total})` : ''}`
+    : `🚨 GOAL! ${teamName(team, side)}`);
   const parts = [];
-  if (goal?.emptyNet) parts.push('Filet désert');
-  else if (goal?.strength === 'pp') parts.push('Avantage numérique');
-  else if (goal?.strength === 'sh') parts.push('Désavantage numérique');
-  if (goal) parts.push(goal.assists.length ? `Aides : ${goal.assists.map((x) => (x.total ? `${x.name} (${x.total})` : x.name)).join(', ')}` : 'Sans aide');
+  if (goal?.emptyNet) parts.push('Empty net');
+  else if (goal?.strength === 'pp') parts.push('Power play');
+  else if (goal?.strength === 'sh') parts.push('Shorthanded');
+  if (goal) parts.push(goal.assists.length ? `Assists: ${goal.assists.map((x) => (x.total ? `${x.name} (${x.total})` : x.name)).join(', ')}` : 'Unassisted');
   parts.push(scoreLine);
   activity.state = truncate(parts.join(' · '));
   const light = goalLight();
   if (light) {
     const when = goal?.period ? ` · ${periodLabel(goal.period)}${goal.time ? ` ${goal.time}` : ''}` : '';
-    Object.assign(activity, { smallImageKey: light, smallImageText: truncate(`But ${teamName(team, side)}${when}`) });
+    Object.assign(activity, { smallImageKey: light, smallImageText: truncate(`${teamName(team, side)} goal${when}`) });
   }
 }
 
@@ -165,7 +165,7 @@ async function gameActivity(s) {
   else s.goalAlert = null;
 
   if (game.url) activity.detailsUrl = game.url;
-  if (config.showGamecenterButton && game.url) activity.buttons = [{ label: game.urlLabel || 'Voir le match', url: game.url }];
+  if (config.showGamecenterButton && game.url) activity.buttons = [{ label: game.urlLabel || 'View game', url: game.url }];
   return activity;
 }
 
@@ -175,8 +175,8 @@ function genericActivity(s) {
   const activity = {
     type: LISTENING,
     statusDisplayType: SHOW_DETAILS,
-    details: truncate(b ? `${a} vs ${b}` : s.title || 'Match de hockey'),
-    state: truncate(s.league ? `${s.league} · En direct` : 'En direct'),
+    details: truncate(b ? `${a} vs ${b}` : s.title || 'Hockey game'),
+    state: truncate(s.league ? `${s.league} · Live` : 'Live'),
     instance: false,
   };
   applyImages(activity, s, null, s.league || 'Hockey');
