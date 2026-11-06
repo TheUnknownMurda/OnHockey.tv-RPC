@@ -9,16 +9,20 @@ const { abbreviate, periodLabel, finalLabel } = require('./format');
 const { getMatchupImageUrl } = require('./matchup-image');
 const { leagueLogo, refreshDiscordAssets, hasDiscordAsset } = require('./league-logos');
 const { hosted, cached, RETRY_MS } = require('./hosting');
-const { startConsole, normalize } = require('./console');
+const { startConsole, stopConsole, print, paint, formatLine, banner, normalize } = require('./console');
 
 const CONFIG_FILE = path.join(__dirname, '..', 'config.json');
 const LOG_FILE = path.join(__dirname, '..', 'onhockey-tv-rpc.log');
+// Console : ligne en couleurs ; fichier : texte brut avec la date complète
 const write = (level, msg) => {
-  const line = `${new Date().toLocaleString('fr-CA')} [${level}] ${msg}`;
-  (level === 'ERR' ? console.error : console.log)(line);
-  try { fs.appendFileSync(LOG_FILE, line + '\n'); } catch {}
+  const now = new Date();
+  print(formatLine(level, msg, now), { error: level === 'ERR' });
+  try { fs.appendFileSync(LOG_FILE, `${now.toLocaleString('fr-CA')} [${level}] ${msg}\n`); } catch {}
 };
 const log = { info: (m) => write('INFO', m), warn: (m) => write('WARN', m), error: (m) => write('ERR', m) };
+
+// Bannière dans la fenêtre de start.bat (l'instance en arrière-plan n'a pas de console)
+if (process.stdout.isTTY) console.log(banner(require('../package.json').version, process.stdin.isTTY));
 
 const SESSION_TTL_MS = 45000; // sans signal de l'extension pendant 45 s → on considère que l'onglet est fermé
 const SHOW_DETAILS = 2;
@@ -318,12 +322,15 @@ function saveConfig(key, value) {
   }
 }
 
+const TYPE_NAMES = Object.keys(ACTIVITY_TYPES);
+const cmd = (text) => paint(['bold', 'greenBright'], text);
+
 const commands = [
   {
     names: ['masquer', 'hide'],
     help: 'retire la présence de Discord (le match reste suivi)',
     run() {
-      if (hidden) return console.log('La présence est déjà masquée. Tapez « afficher » pour la remettre.');
+      if (hidden) return print(`  ${paint('yellow', 'La présence est déjà masquée.')} Tapez ${cmd('afficher')} pour la remettre.`);
       hidden = true;
       log.info('[console] présence masquée (« afficher » pour la remettre)');
       tick();
@@ -333,7 +340,7 @@ const commands = [
     names: ['afficher', 'show'],
     help: 'remet la présence',
     run() {
-      if (!hidden) return console.log('La présence est déjà affichée.');
+      if (!hidden) return print(`  ${paint('yellow', 'La présence est déjà affichée.')}`);
       hidden = false;
       log.info('[console] présence affichée');
       tick();
@@ -341,15 +348,15 @@ const commands = [
   },
   {
     names: ['type'],
-    usage: '<watching|listening|playing|competing>',
-    help: 'type de présence, gardé dans config.json',
+    usage: '<type>',
+    choices: TYPE_NAMES,
+    help: `${TYPE_NAMES.join(', ')} ; gardé dans config.json`,
     run(arg) {
-      const choices = Object.keys(ACTIVITY_TYPES);
       const wanted = normalize(arg);
-      const type = wanted && choices.find((t) => t.startsWith(wanted));
+      const type = wanted && TYPE_NAMES.find((t) => t.startsWith(wanted));
       if (!type) {
-        if (wanted) console.log(`Type inconnu « ${arg} ».`);
-        return console.log(`Type actuel : « ${cardTitle()} ». Choix : ${choices.join(', ')} (ex. « type watching »).`);
+        if (wanted) print(`  ${paint('yellow', `Type inconnu « ${arg} ».`)}`);
+        return print(`  Type actuel : ${paint(['bold', 'cyanBright'], cardTitle())} · choix : ${TYPE_NAMES.map(cmd).join(', ')} (ex. ${cmd('type watching')})`);
       }
       config.activityType = type;
       const saved = saveConfig('activityType', type);
@@ -359,11 +366,18 @@ const commands = [
   },
   {
     names: ['etat', 'status'],
-    help: 'présence affichée ou masquée, type, match suivi',
+    help: 'présence, type, Discord et match suivi',
     run() {
       const s = activeSession();
-      console.log(`Présence : ${hidden ? 'masquée' : 'affichée'} · « ${cardTitle()} » · Discord ${presence.ready ? 'connecté' : 'non connecté'}`);
-      console.log(`Match : ${s ? `${s.league || '?'} · ${s.teams.join(' - ') || s.title}` : 'aucun'}`);
+      const row = (label, value) => `    ${paint('gray', label.padEnd(10))}${value}`;
+      print([
+        '',
+        row('Présence', hidden ? paint('yellow', '○ masquée') : paint('greenBright', '● affichée')),
+        row('Type', paint(['bold', 'cyanBright'], cardTitle())),
+        row('Discord', presence.ready ? paint('greenBright', '● connecté') : paint('redBright', '● non connecté')),
+        row('Match', s ? `${s.league || '?'} · ${s.teams.join(' - ') || s.title}` : paint('gray', 'aucun')),
+        '',
+      ].join('\n'));
     },
   },
   {
@@ -379,12 +393,16 @@ if (!Object.hasOwn(ACTIVITY_TYPES, normalize(config.activityType || 'listening')
 
 server.listen(config.port, '127.0.0.1', () => {
   log.info(`OnHockey.tv RPC prêt sur http://127.0.0.1:${config.port}`);
-  startConsole(commands);
+  startConsole(commands, { onInterrupt: shutdown });
 });
 
 setInterval(tick, config.pollSeconds * 1000);
 
+let stopping = false;
 async function shutdown() {
+  if (stopping) return;
+  stopping = true;
+  stopConsole();
   log.info('Arrêt…');
   await presence.destroy();
   process.exit(0);

@@ -92,7 +92,7 @@ The presence appears when you click a stream link on onhockey.tv. It disappears 
 
 ### Console commands
 
-In the `start.bat` window, type a command and press Enter. The instance started with Windows runs without a window, so run `start.bat` to get the console.
+The `start.bat` window shows the log in color (time, source, red ` BUT ! ` badge on goals) with a `›` prompt at the bottom. Type a command and press Enter: Tab completes it and ↑ recalls the previous ones. The instance started with Windows runs without a window, so run `start.bat` to get the console. The log file stays plain text.
 
 | Command | What it does |
 | --- | --- |
