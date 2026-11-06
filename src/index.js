@@ -9,7 +9,9 @@ const { abbreviate, periodLabel, finalLabel } = require('./format');
 const { getMatchupImageUrl } = require('./matchup-image');
 const { leagueLogo, refreshDiscordAssets, hasDiscordAsset } = require('./league-logos');
 const { hosted, cached, RETRY_MS } = require('./hosting');
+const { startConsole, normalize } = require('./console');
 
+const CONFIG_FILE = path.join(__dirname, '..', 'config.json');
 const LOG_FILE = path.join(__dirname, '..', 'onhockey-tv-rpc.log');
 const write = (level, msg) => {
   const line = `${new Date().toLocaleString('fr-CA')} [${level}] ${msg}`;
@@ -19,8 +21,15 @@ const write = (level, msg) => {
 const log = { info: (m) => write('INFO', m), warn: (m) => write('WARN', m), error: (m) => write('ERR', m) };
 
 const SESSION_TTL_MS = 45000; // sans signal de l'extension pendant 45 s → on considère que l'onglet est fermé
-const LISTENING = 2;
 const SHOW_DETAILS = 2;
+// Type d'activité (config.activityType, commande « type ») et en-tête de la carte qui en résulte
+const ACTIVITY_TYPES = { playing: 0, listening: 2, watching: 3, competing: 5 };
+const TYPE_LABELS = { playing: 'Playing', listening: 'Listening to', watching: 'Watching', competing: 'Competing in' };
+const activityType = () => {
+  const t = normalize(config.activityType);
+  return Object.hasOwn(ACTIVITY_TYPES, t) ? t : 'listening';
+};
+const cardTitle = () => `${TYPE_LABELS[activityType()]} ${config.activityName || 'OnHockey.tv RPC'}`;
 const GOAL_LIGHT_FILE = path.join(__dirname, '..', 'assets', 'goal-light.gif');
 
 const presence = new Presence(config.clientId, log);
@@ -154,7 +163,6 @@ async function gameActivity(s) {
     ? `${abbr(a, 0)} vs ${abbr(b, 1)}`
     : `${abbr(a, 0)} ${a.score} – ${b.score} ${abbr(b, 1)}`;
   const activity = {
-    type: LISTENING,
     statusDisplayType: SHOW_DETAILS,
     details: truncate(`${name(a, 0)} vs ${name(b, 1)}`),
     state: truncate(`${scoreLine} · ${game.statusText}`),
@@ -176,7 +184,6 @@ async function gameActivity(s) {
 function genericActivity(s) {
   const [a, b] = s.teams;
   const activity = {
-    type: LISTENING,
     statusDisplayType: SHOW_DETAILS,
     details: truncate(b ? `${a} vs ${b}` : s.title || 'Hockey game'),
     state: truncate(s.league ? `${s.league} · Live` : 'Live'),
@@ -188,6 +195,7 @@ function genericActivity(s) {
 
 let ticking = false;
 let again = false;
+let hidden = false; // présence retirée depuis la console ; le match reste suivi (scores, buts, affiche)
 
 async function tick() {
   if (ticking) { again = true; return; }
@@ -210,10 +218,12 @@ async function tick() {
     }
     activity = activity || genericActivity(s);
     if (config.showElapsed) activity.startTimestamp = s.startedAt;
-    // Nom affiché dans l'en-tête de la carte (« Regarde … ») ; la ligne de statut garde le nom des équipes.
+    // En-tête de la carte (« Listening to Hockey ») ; la ligne de statut garde le nom des équipes.
+    activity.type = ACTIVITY_TYPES[activityType()];
     if (config.activityName) activity.name = config.activityName;
     s.lastActivity = activity;
-    presence.set(activity);
+    if (hidden) presence.clear();
+    else presence.set(activity);
   } finally {
     ticking = false;
     if (again) { again = false; setImmediate(tick); }
@@ -245,7 +255,7 @@ const server = http.createServer(async (req, res) => {
   try {
     if (req.method === 'GET' && req.url === '/status') {
       const s = activeSession();
-      return send(200, { discord: presence.ready, watching: s ? { league: s.league, teams: s.teams, activity: s.lastActivity } : null });
+      return send(200, { discord: presence.ready, hidden, watching: s ? { league: s.league, teams: s.teams, activity: s.lastActivity } : null });
     }
     if (req.method === 'POST' && req.url === '/watch') {
       const body = await readBody(req);
@@ -295,8 +305,81 @@ server.on('error', (err) => {
   process.exit(1);
 });
 
+// Garde une valeur dans config.json pour les prochains lancements
+function saveConfig(key, value) {
+  try {
+    const json = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+    json[key] = value;
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(json, null, 2) + '\n');
+    return true;
+  } catch (err) {
+    log.warn(`[console] config.json non modifié : ${err.message}`);
+    return false;
+  }
+}
+
+const commands = [
+  {
+    names: ['masquer', 'hide'],
+    help: 'retire la présence de Discord (le match reste suivi)',
+    run() {
+      if (hidden) return console.log('La présence est déjà masquée. Tapez « afficher » pour la remettre.');
+      hidden = true;
+      log.info('[console] présence masquée (« afficher » pour la remettre)');
+      tick();
+    },
+  },
+  {
+    names: ['afficher', 'show'],
+    help: 'remet la présence',
+    run() {
+      if (!hidden) return console.log('La présence est déjà affichée.');
+      hidden = false;
+      log.info('[console] présence affichée');
+      tick();
+    },
+  },
+  {
+    names: ['type'],
+    usage: '<watching|listening|playing|competing>',
+    help: 'type de présence, gardé dans config.json',
+    run(arg) {
+      const choices = Object.keys(ACTIVITY_TYPES);
+      const wanted = normalize(arg);
+      const type = wanted && choices.find((t) => t.startsWith(wanted));
+      if (!type) {
+        if (wanted) console.log(`Type inconnu « ${arg} ».`);
+        return console.log(`Type actuel : « ${cardTitle()} ». Choix : ${choices.join(', ')} (ex. « type watching »).`);
+      }
+      config.activityType = type;
+      const saved = saveConfig('activityType', type);
+      log.info(`[console] type de présence : « ${cardTitle()} »${saved ? ' (gardé dans config.json)' : ''}`);
+      tick();
+    },
+  },
+  {
+    names: ['etat', 'status'],
+    help: 'présence affichée ou masquée, type, match suivi',
+    run() {
+      const s = activeSession();
+      console.log(`Présence : ${hidden ? 'masquée' : 'affichée'} · « ${cardTitle()} » · Discord ${presence.ready ? 'connecté' : 'non connecté'}`);
+      console.log(`Match : ${s ? `${s.league || '?'} · ${s.teams.join(' - ') || s.title}` : 'aucun'}`);
+    },
+  },
+  {
+    names: ['quitter', 'quit'],
+    help: 'arrête OnHockey.tv RPC',
+    run: () => shutdown(),
+  },
+];
+
+if (!Object.hasOwn(ACTIVITY_TYPES, normalize(config.activityType || 'listening'))) {
+  log.warn(`[config] activityType « ${config.activityType} » inconnu : « listening » utilisé`);
+}
+
 server.listen(config.port, '127.0.0.1', () => {
   log.info(`OnHockey.tv RPC prêt sur http://127.0.0.1:${config.port}`);
+  startConsole(commands);
 });
 
 setInterval(tick, config.pollSeconds * 1000);

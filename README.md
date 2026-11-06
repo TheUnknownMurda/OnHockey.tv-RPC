@@ -11,7 +11,7 @@ Discord Rich Presence for [onhockey.tv](https://onhockey.tv/): your Discord stat
 
 <img src="docs/matchup-leagues.png" width="660" alt="Matchup posters: SHL, KHL, NCAA, OHL, NHL">
 
-Your status line shows the teams (« Canadiens vs Capitals ») and the activity card is titled with `activityName` from `config.json`. Hovering the image shows the full team names and shots on goal. A « Gamecenter NHL.com » button and the time you've been watching are shown too.
+Your status line shows the teams (« Canadiens vs Capitals ») and the activity card header reads « Listening to Hockey » (`activityType` and `activityName` in `config.json`). Hovering the image shows the full team names and shots on goal. A « Gamecenter NHL.com » button and the time you've been watching are shown too.
 
 onhockey.tv lists **134 leagues** over a season. Score, period and poster work for 53 of them:
 
@@ -86,9 +86,22 @@ The presence appears when you click a stream link on onhockey.tv. It disappears 
 | File | What it does |
 | --- | --- |
 | `install.bat` | Installs or repairs OnHockey.tv RPC (safe to run again) |
-| `start.bat` | Restarts OnHockey.tv RPC in a window where you can see the logs |
+| `start.bat` | Restarts OnHockey.tv RPC in a window where you can see the logs and type commands |
 | `stop.bat` | Stops OnHockey.tv RPC and clears your Discord status |
 | `uninstall.bat` | Stops OnHockey.tv RPC and removes it from Windows startup |
+
+### Console commands
+
+In the `start.bat` window, type a command and press Enter. The instance started with Windows runs without a window, so run `start.bat` to get the console.
+
+| Command | What it does |
+| --- | --- |
+| `masquer` (`hide`) | Removes your status from Discord until `afficher`. The game is still followed (score, goals). |
+| `afficher` (`show`) | Shows your status again |
+| `type watching` | Activity type: `watching`, `listening`, `playing` or `competing` (« Watching Hockey », « Listening to Hockey »…). The first letter is enough (`type w`). Saved in `config.json`. |
+| `etat` (`status`) | Whether your status is shown, its type and the game followed |
+| `aide` (`help`) | Lists the commands |
+| `quitter` (`quit`) | Stops OnHockey.tv RPC |
 
 ## Troubleshooting
 
@@ -117,7 +130,8 @@ To preview the goal alert while a game is shown in your status, run `curl -X POS
 | Key | Description |
 | --- | --- |
 | `clientId` | Discord application ID |
-| `activityName` | Title of the activity card (« Watching OnHockey.tv RPC »). Your status line always shows the teams. |
+| `activityName` | Name in the activity card header (« Listening to **Hockey** »). Your status line always shows the teams. |
+| `activityType` | `listening` (« Listening to Hockey »), `watching`, `playing` or `competing`. Also changed with the `type` console command. |
 | `pollSeconds` | Score refresh interval, in seconds |
 | `generateMatchupImage` | `false` always uses `fallbackImage` |
 | `fallbackImage` | Image used when no matchup poster is available |
