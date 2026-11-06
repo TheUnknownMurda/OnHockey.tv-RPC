@@ -105,7 +105,6 @@ async function render(league) {
 }
 
 const cacheKey = (league) => `${league.id}@${VERSION}`;
-const failedAt = new Map(); // évite de réessayer l'envoi à chaque rafraîchissement si l'hébergeur est indisponible
 
 // { key, text } prêt à l'emploi, ou null si la ligue est inconnue ou que son logo est en cours d'envoi
 // (onReady est alors appelé une fois l'envoi terminé).
@@ -116,9 +115,9 @@ function leagueLogo(session, { log, apiKey, onReady } = {}) {
   if (hasDiscordAsset(league.id)) return { key: league.id, text, league };
   const url = cached('league-logos', cacheKey(league));
   if (url) return { key: url, text, league };
-  if (Date.now() - (failedAt.get(league.id) || 0) < 10 * 60e3) return null;
+  // Après un échec, hosted() attend lui-même avant de réessayer
   hosted('league-logos', cacheKey(league), async () => ({ buffer: await render(league), filename: `${league.id}.png` }), { log, apiKey })
-    .then((u) => (u ? onReady?.() : failedAt.set(league.id, Date.now())));
+    .then((u) => u && onReady?.());
   return null;
 }
 

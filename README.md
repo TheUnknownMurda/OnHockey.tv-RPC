@@ -101,7 +101,7 @@ Click the extension icon first: the popup tells you what's wrong.
 | Everything is connected but nobody sees the status | Discord → User Settings → **Activity Privacy** → turn on **Share your detected activities with others**. |
 | No score shown | No free source covers that league (see [docs/LEAGUES.md](docs/LEAGUES.md)). The log says « aucune source pour … ». |
 | A league shows the wrong logo or a badge | Add `assets/<id>.png` (id from [`src/leagues.js`](src/leagues.js)) or upload an Art Asset with that name to your Discord application, then restart with `start.bat`. |
-| The image is the default one instead of the logos | The poster couldn't be uploaded. Check `onhockey-tv-rpc.log`; it's retried the next time you watch that game. |
+| The league logo or default image shows instead of the matchup poster | The poster couldn't be uploaded to freeimage.host or pixhost.to. Check `onhockey-tv-rpc.log`; it's retried every 10 minutes. |
 | The extension doesn't react, or the wrong league logo shows | After moving the folder or updating the files, click the reload ↻ button on the extension in the extensions page, then reload onhockey.tv. |
 | Error about `start-hidden.vbs` when Windows starts | You updated from an older version. Run `install.bat` again to recreate the startup shortcut. |
 | Chrome warns about developer-mode extensions | That's normal for extensions loaded from a folder. Keep it enabled. |
@@ -137,15 +137,15 @@ onhockey.tv ──(extension)──▶ OnHockey.tv RPC (local app) ──▶ Dis
                                    │
                                    ├─ NHL API / HockeyTech / ESPN / 365Scores / LiveScore: score, period, clock
                                    ├─ league logos: Discord assets / assets/ / Wikipedia / generated badge
-                                   └─ posters and logos (sharp) → hosted on freeimage.host
+                                   └─ posters and logos (sharp) → hosted on freeimage.host (backup: pixhost.to)
 ```
 
 1. The **extension** detects the stream link you click on onhockey.tv and reads the game (`Montréal - Washington`), its league and the league's icon.
 2. The **local app** (Node.js) picks a data source from the league, finds the game by team names (tolerant to spelling variants like « Brynäs » / « Brynaes »), refreshes the score every 15 s, spots goals and updates Discord.
-3. Each matchup poster is generated once from the teams' logos and uploaded, because Discord only displays images from public URLs. The URL is cached in `cache/matchups.json`.
+3. Each matchup poster is generated once from the teams' logos and uploaded, because Discord only displays images from public URLs. It goes to freeimage.host, or to pixhost.to when freeimage.host is down. The URL is cached in `cache/matchups.json`; if that link stops working, the poster is uploaded again.
 
 ## Notes
 
 - **Spoilers:** streams are often 30–60 s behind live TV. The score comes from the NHL API, so it can be ahead of your video.
-- **Privacy:** OnHockey.tv RPC only listens on `127.0.0.1` and only reacts to its own extension. It sends nothing except the matchup posters and league logos to freeimage.host.
+- **Privacy:** OnHockey.tv RPC only listens on `127.0.0.1` and only reacts to its own extension. It sends nothing except the matchup posters, league logos and goal light to freeimage.host (or pixhost.to when freeimage.host is down).
 - **Why the posters are built from logos instead of AI-generated:** image generators distort logos. Building the poster from the real logos gives an exact result for every team.

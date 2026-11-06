@@ -8,7 +8,7 @@ const providers = require('./providers');
 const { abbreviate, periodLabel, finalLabel } = require('./format');
 const { getMatchupImageUrl } = require('./matchup-image');
 const { leagueLogo, refreshDiscordAssets, hasDiscordAsset } = require('./league-logos');
-const { hosted, cached } = require('./hosting');
+const { hosted, cached, RETRY_MS } = require('./hosting');
 
 const LOG_FILE = path.join(__dirname, '..', 'onhockey-tv-rpc.log');
 const write = (level, msg) => {
@@ -132,9 +132,11 @@ async function gameActivity(s) {
   const name = (t, i) => t.name || s.teams[i];
   const abbr = (t, i) => t.abbrev || abbreviate(name(t, i));
 
-  // Affiche des deux équipes : undefined = pas encore tentée, null = en cours, false = impossible, sinon URL
-  if (s.poster === undefined) {
+  // Affiche des deux équipes : undefined = pas encore tentée, null = en cours, false = impossible, sinon URL.
+  // Envoi raté (hébergeur en panne) : nouvel essai après RETRY_MS, l'affiche revient sans redémarrer.
+  if (s.poster === undefined || (s.posterRetryAt && Date.now() >= s.posterRetryAt)) {
     s.poster = false;
+    s.posterRetryAt = 0;
     if (config.generateMatchupImage && a.logo && b.logo) {
       s.poster = null;
       // Clé sans préfixe pour la LNH : garde les affiches déjà hébergées (« MTL-WSH »).
@@ -142,6 +144,7 @@ async function gameActivity(s) {
       const sides = [a, b].map((t) => ({ logo: t.logo, color: t.color }));
       getMatchupImageUrl(key, sides, imageOpts).then((url) => {
         s.poster = url || false;
+        if (!url) s.posterRetryAt = Date.now() + RETRY_MS;
         tick();
       });
     }
