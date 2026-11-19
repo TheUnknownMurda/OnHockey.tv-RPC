@@ -66,7 +66,7 @@ function toGame(g) {
     home,
     state,
     statusText: text,
-    hover: `${away.fullName} @ ${home.fullName}${shots}`,
+    hover: `${away.name} @ ${home.name}${shots}`,
     url: g.gameCenterLink ? `https://www.nhl.com${g.gameCenterLink}` : null,
     urlLabel: 'Gamecenter NHL.com',
     badge: 'https://a.espncdn.com/i/teamlogos/leagues/500/nhl.png',

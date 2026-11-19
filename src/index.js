@@ -143,6 +143,8 @@ async function gameActivity(s) {
   const [a, b] = game.teams;
   // Noms : ceux de la source, sauf quand elle les translittère (LiveScore) → ceux d'onhockey.tv
   const name = (t, i) => t.name || s.teams[i];
+  // Ville + nom (« Montréal Canadiens ») quand la source le donne
+  const full = (t, i) => t.fullName || name(t, i);
   const abbr = (t, i) => t.abbrev || abbreviate(name(t, i));
 
   // Affiche des deux équipes : undefined = pas encore tentée, null = en cours, false = impossible, sinon URL.
@@ -168,11 +170,11 @@ async function gameActivity(s) {
     : `${abbr(a, 0)} ${a.score} – ${b.score} ${abbr(b, 1)}`;
   const activity = {
     statusDisplayType: SHOW_DETAILS,
-    details: truncate(`${name(a, 0)} vs ${name(b, 1)}`),
+    details: truncate(`${full(a, 0)} vs ${full(b, 1)}`),
     state: truncate(`${scoreLine} · ${game.statusText}`),
     instance: false,
   };
-  const hover = game.hover || `${s.league || game.league} · ${a.fullName || name(a, 0)} vs ${b.fullName || name(b, 1)}`;
+  const hover = game.hover || `${s.league || game.league} · ${name(a, 0)} vs ${name(b, 1)}`;
   applyImages(activity, s, s.poster, hover);
 
   detectGoal(s, game);
