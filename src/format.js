@@ -35,4 +35,7 @@ function abbreviate(name) {
   return word.slice(0, 3).toUpperCase();
 }
 
-module.exports = { ordinal, periodLabel, intermission, clock, startsAt, finalLabel, abbreviate };
+// « 12:34 » → 754 s, « 00:12:34 » → 754 s
+const seconds = (t) => String(t || '').split(':').reduce((sum, x) => sum * 60 + (Number(x) || 0), 0);
+
+module.exports = { ordinal, periodLabel, intermission, clock, startsAt, finalLabel, abbreviate, seconds };

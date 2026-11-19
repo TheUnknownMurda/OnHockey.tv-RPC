@@ -2,8 +2,8 @@
 // de la LHJMQ (et de la Coupe Memorial), de la USHL et des ligues junior A canadiennes, avec le temps restant à la période,
 // le marqueur et les aides.
 const { findLeague } = require('../leagues');
-const { periodLabel, intermission, clock, startsAt, finalLabel } = require('../format');
-const { getJson, localDate } = require('./http');
+const { periodLabel, intermission, clock, startsAt, finalLabel, seconds } = require('../format');
+const { getJson, localDate, producedAt } = require('./http');
 
 const FEED = 'https://lscluster.hockeytech.com/feed/index.php';
 
@@ -41,7 +41,9 @@ const url = (league, params) => {
 };
 
 // GameStatus : 1 = à venir, 2 = en cours, 3 = terminé (non officiel), 4 = terminé. GameClock = temps restant à la période.
-function status(g) {
+// at : moment où le fil a produit la réponse. Pour la barre de Discord : clockEnd = moment où le chrono de la période
+// arrivera à 0:00, clockLength = durée de la période en secondes.
+function status(g, at = Date.now()) {
   const text = String(g.GameStatusStringLong || g.GameStatusString || '');
   const s = Number(g.GameStatus);
   const n = Number(g.Period) || 1;
@@ -55,7 +57,13 @@ function status(g) {
   // « 12:34 » ou « 00:12:34 »
   const left = String(g.GameClock || '').split(':').slice(-2).join(':');
   if (!left || /^0?0:00$/.test(left)) return { state: 'live', text: `End of ${label.toLowerCase()}` };
-  return { state: 'live', text: `${label} · ${clock(left)}` };
+  const shown = `${label} · ${clock(left)}`;
+  // Prolongation : 5 minutes en saison, 20 en séries (déduit du temps restant)
+  const sec = seconds(left);
+  const length = n > 3 && sec <= 5 * 60 ? 5 * 60 : 20 * 60;
+  // Chrono pas encore parti : la période n'a pas commencé (le fil reste ainsi pendant l'entracte)
+  if (sec >= length) return { state: 'live', text: shown };
+  return { state: 'live', text: shown, clockEnd: at + sec * 1000, clockLength: length };
 }
 
 function team(g, side, league, started) {
@@ -81,10 +89,10 @@ function team(g, side, league, started) {
   };
 }
 
-function toGame(g, league) {
-  const st = status(g);
+function toGame(g, league, at) {
+  const { state, text, clockEnd, clockLength } = status(g, at);
   // Un match reporté garde « 0 » buts dans le fil
-  const started = st.state === 'live' || st.state === 'final';
+  const started = state === 'live' || state === 'final';
   return {
     provider: 'hockeytech',
     id: g.ID,
@@ -95,8 +103,10 @@ function toGame(g, league) {
     country: CLIENTS[league].country,
     home: team(g, 'Home', league, started),
     away: team(g, 'Visitor', league, started),
-    state: st.state,
-    statusText: st.text,
+    state,
+    statusText: text,
+    clockEnd,
+    clockLength,
   };
 }
 
@@ -104,7 +114,7 @@ function toGame(g, league) {
 // et son « aujourd'hui » ne change qu'en fin de matinée (heure de l'Est).
 async function scorebar(league, teamId = '') {
   const data = await getJson(url(league, { feed: 'modulekit', view: 'scorebar', numberofdaysback: 1, numberofdaysahead: 2, team_id: teamId }));
-  return (data.SiteKit?.Scorebar || []).map((g) => ({ date: g.Date, game: toGame(g, league) }));
+  return (data.SiteKit?.Scorebar || []).map((g) => ({ date: g.Date, game: toGame(g, league, producedAt(data)) }));
 }
 
 const isoDate = (days) => localDate(days).replace(/^(\d{4})(\d\d)(\d\d)$/, '$1-$2-$3');
@@ -125,7 +135,6 @@ async function get(id, ref) {
 }
 
 const initial = (p) => [p.firstName && `${p.firstName[0]}.`, p.lastName].filter(Boolean).join(' ');
-const seconds = (t) => String(t || '').split(':').reduce((sum, x) => sum * 60 + (Number(x) || 0), 0);
 
 // Dernier but du match (marqueur et aides, avec leurs totaux de la saison), ou null.
 async function lastGoal(id, ref) {

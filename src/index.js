@@ -126,6 +126,23 @@ function applyGoalAlert(activity, s, game, scoreLine, teamName) {
   }
 }
 
+// Barre de progression de Discord : la période (ou l'entracte de la LNH) d'après le chrono du match, du début (0:00)
+// à la fin (20:00). La carte « Listening to » affiche une barre ; « Playing » afficherait le temps restant.
+// Chrono qui tourne : recalée quand elle s'écarte de plus de RESYNC_MS. Chrono arrêté (arrêt de jeu, signalé par la LNH) :
+// Discord ne sait pas mettre la barre en pause, elle est donc remise en place toutes les PAUSE_MS et bouge à peine.
+// Sans chrono (fin de période, source sans chrono, avant et après le match) : rien.
+const RESYNC_MS = 8000;
+const PAUSE_MS = 5000;
+function progress(s, game) {
+  const now = Date.now();
+  s.paused = false;
+  if (!(game.clockEnd > now)) return (s.timerEnd = null);
+  const stopped = game.clockRunning === false;
+  if (stopped || !(s.timerEnd > now) || Math.abs(game.clockEnd - s.timerEnd) > RESYNC_MS) s.timerEnd = Math.round(game.clockEnd);
+  s.paused = stopped;
+  return { start: Math.min(s.timerEnd - game.clockLength * 1000, now), end: s.timerEnd };
+}
+
 // Match trouvé dans une source de données (LNH, HockeyTech, LiveScore, 365Scores, ESPN) : score, période, logos.
 async function gameActivity(s) {
   if (!s.match) {
@@ -176,6 +193,8 @@ async function gameActivity(s) {
   };
   const hover = game.hover || `${s.league || game.league} · ${name(a, 0)} vs ${name(b, 1)}`;
   applyImages(activity, s, s.poster, hover);
+  const bar = config.showElapsed ? progress(s, game) : null;
+  if (bar) Object.assign(activity, { startTimestamp: bar.start, endTimestamp: bar.end });
 
   detectGoal(s, game);
   if (s.goalAlert && Date.now() < s.goalAlert.until) applyGoalAlert(activity, s, game, scoreLine, name);
@@ -202,6 +221,7 @@ function genericActivity(s) {
 let ticking = false;
 let again = false;
 let hidden = false; // présence retirée depuis la console ; le match reste suivi (scores, buts, affiche)
+let pauseTick = null; // rafraîchissement rapproché pendant un arrêt de jeu (barre presque immobile)
 
 async function tick() {
   if (ticking) { again = true; return; }
@@ -214,6 +234,7 @@ async function tick() {
       return;
     }
     let activity = null;
+    s.paused = false;
     if (s.teams.length === 2) {
       try {
         activity = await gameActivity(s);
@@ -223,13 +244,13 @@ async function tick() {
       }
     }
     activity = activity || genericActivity(s);
-    if (config.showElapsed) activity.startTimestamp = s.startedAt;
     // En-tête de la carte (« Listening to Hockey ») ; la ligne de statut garde le nom des équipes.
     activity.type = ACTIVITY_TYPES[activityType()];
     if (config.activityName) activity.name = config.activityName;
     s.lastActivity = activity;
     if (hidden) presence.clear();
     else presence.set(activity);
+    if (s.paused && !hidden && !pauseTick) pauseTick = setTimeout(() => { pauseTick = null; tick(); }, PAUSE_MS);
   } finally {
     ticking = false;
     if (again) { again = false; setImmediate(tick); }
@@ -270,7 +291,7 @@ const server = http.createServer(async (req, res) => {
       const key = `${body.league}|${teams.join('|')}`;
       let s = sessions.get(id);
       if (!s || s.key !== key) {
-        s = { key, league: String(body.league || ''), region: String(body.region || ''), icon: String(body.icon || ''), teams, title: String(body.title || ''), startedAt: Date.now() };
+        s = { key, league: String(body.league || ''), region: String(body.region || ''), icon: String(body.icon || ''), teams, title: String(body.title || '') };
         sessions.set(id, s);
         log.info(`[onhockey] ${s.league || '?'} : ${teams.join(' - ') || s.title}`);
       }

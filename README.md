@@ -6,12 +6,13 @@ Discord Rich Presence for [onhockey.tv](https://onhockey.tv/): your Discord stat
 
 - **Line 1:** the game, e.g. `Montréal Canadiens vs Washington Capitals`
 - **Line 2:** live score + period + clock, e.g. `MTL 3 – 3 WSH · 3rd period · 12:20`, `2nd intermission · 4:51`, `Final (OT)`
+- **Progress bar:** the current period from 0:00 to 20:00, following the game clock (NHL, HockeyTech leagues, NCAA), and the intermission in the NHL. During an NHL stoppage, the bar is put back in place every 5 seconds so it barely moves (Discord can't pause it, and the NHL feed reports stoppages 20 to 40 seconds late). Elsewhere it keeps moving during a stoppage, then catches up with the game clock at the next refresh. No bar when there is no clock to follow (other leagues, intermissions outside the NHL, before and after the game). With `type playing`, Discord shows the time left instead
 - **Image:** a matchup poster built from both teams' logos, with the league logo as the small image
 - **Goals:** for about a minute after a goal, the status shows who scored and the assists, with a flashing goal light
 
 <img src="docs/matchup-leagues.png" width="660" alt="Matchup posters: SHL, KHL, NCAA, OHL, NHL">
 
-Your status line shows the teams (« Montréal Canadiens vs Washington Capitals ») and the activity card header reads « Listening to Hockey » (`activityType` and `activityName` in `config.json`). Hovering the image shows the team names and shots on goal (« Canadiens @ Capitals · Shots: MTL 13 – 12 WSH »). A « Gamecenter NHL.com » button and the time you've been watching are shown too.
+Your status line shows the teams (« Montréal Canadiens vs Washington Capitals ») and the activity card header reads « Listening to Hockey » (`activityType` and `activityName` in `config.json`). Hovering the image shows the team names and shots on goal (« Canadiens @ Capitals · Shots: MTL 13 – 12 WSH »). A « Gamecenter NHL.com » button is shown too.
 
 onhockey.tv lists **134 leagues** over a season. Score, period and poster work for 53 of them:
 
@@ -136,7 +137,7 @@ To preview the goal alert while a game is shown in your status, run `curl -X POS
 | `generateMatchupImage` | `false` always uses `fallbackImage` |
 | `fallbackImage` | Image used when no matchup poster is available |
 | `freeimageApiKey` | Your own [freeimage.host](https://freeimage.host/page/api) API key (optional) |
-| `showElapsed` | Shows how long you've been watching |
+| `showElapsed` | Progress bar of the current period (and NHL intermission), following the game clock |
 | `showLeagueBadge` | League logo as the small image over the matchup poster |
 | `goalAlerts` | Goal alerts (scorer, assists, goal light) |
 | `goalAlertSeconds` | How long the goal alert stays, in seconds |
